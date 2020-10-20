@@ -17,7 +17,7 @@ __all__ = [ 'fetch_data' ]
 
 DATA_DIR       = os.path.abspath('../data')
 LAST_BLOCK     = 905107
-LAST_BLOCK     = 80000  # for debugging
+# LAST_BLOCK     = 80000  # for debugging
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 3
 
@@ -114,10 +114,11 @@ def fetch_data():
     for asset in LIST_ASSETS:
         try:
             dfs[asset] = pd.read_csv('{}/pool_{}.csv'.format(DATA_DIR, asset)).to_dict(orient='records')
-            FIRST_BLOCK[asset] = df[asset][-1]['block_number'] + STEP
+            FIRST_BLOCK[asset] = dfs[asset][-1]['block_number'] + STEP
+            info('Loaded existing CSV', asset=asset, first_block=FIRST_BLOCK[asset])
         except:
             dfs[asset] = []
-        info('Started data collection', asset=asset, first_block=FIRST_BLOCK[asset])
+            info('Local CSV not found. Starting new...', asset=asset, first_block=FIRST_BLOCK[asset])
 
     try:
         for block_number in range(min(FIRST_BLOCK.values()), LAST_BLOCK + 1, STEP):
