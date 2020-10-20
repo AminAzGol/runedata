@@ -1,1 +1,2 @@
-thorchain_user_data.csv
+data/*
+__pycache__/
