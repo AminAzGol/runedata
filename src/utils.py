@@ -6,6 +6,7 @@ from time import sleep
 
 
 __all__ = (
+    'utc_to_unix',
     'info',
     'warn',
     'error',
@@ -20,9 +21,18 @@ _yellow = lambda msg: colored(msg, 'yellow')
 _green = lambda msg: colored(msg, 'green')
 _blue = lambda msg: colored(msg, 'blue')
 
-_utc_to_unix = lambda utc_time: int(datetime.strptime(utc_time[:19], '%Y-%m-%dT%H:%M:%S').timestamp())
-
 _currenttime = lambda: datetime.now().strftime('[%m/%d/%Y %H:%M:%S]')
+
+_columns = [
+    'block_number',
+    'timestamp',
+    'pool_units',
+    'balance_rune',
+    'balance_asset'
+]
+
+
+utc_to_unix = lambda utc_time: int(datetime.strptime(utc_time[:19], '%Y-%m-%dT%H:%M:%S').timestamp())
 
 
 def _join_kwargs(kwargs):
@@ -52,7 +62,7 @@ def error(msg, **kwargs):
 
 # API maintained by a community member
 def api_url(asset, block_number):
-    return 'https://asgard-consumer.vercel.app/api/v1/block/detail?pool={}&height={}'.format(asset, block_number)
+    return 'https://asgard-consumer.vercel.app/api/v1/block/detail?pool={}&height={}&isNeedTime=true'.format(asset, block_number)
 
 
 def random_sleep(max_seconds):
@@ -64,7 +74,7 @@ def random_sleep(max_seconds):
 def _save_data(df, filename):
     if not isinstance(df, pd.DataFrame):
         try:
-            df = pd.DataFrame(df)
+            df = pd.DataFrame(df, columns=_columns)
         except Exception:
             error('Failed to convert data to a DataFrame')
             exit()

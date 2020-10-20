@@ -17,7 +17,7 @@ __all__ = [ 'fetch_data' ]
 
 DATA_DIR       = os.path.abspath('../data')
 LAST_BLOCK     = 905107
-# LAST_BLOCK     = 80000  # for debugging
+LAST_BLOCK     = 80000  # for debugging
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 3
 
@@ -89,7 +89,9 @@ def _fetch_block_data(asset, block_number):
             error('Failed to fetch data from API. Retrying...', asset=asset, block_number=block_number, tries=tries)
 
     if _enabled_and_nonzero_balance(data):
-        data['block_number'] = data['height']  # change key `height` to `block_number` because I like it
+        data['block_number'] = data['height']          # change key `height` to `block_number` because I like it
+        data['timestamp'] = utc_to_unix(data['time'])  # change UTC time to UNIX timestamp
+        data.pop('time')
         data.pop('height')
         data.pop('asset')
         data.pop('status')
