@@ -12,11 +12,11 @@ from urllib.request import urlopen
 # Configs
 #-------------------------------------------------------------------------------
 
-USER_SHARE  = 801134713433  # User's pool share
-FIRST_BLOCK = 611552        # The fist block after 10/1/2020 00:00 UTC
-LAST_BLOCK  = 900129        # The latest block
-STEP        = 625           # approx. 1 hr
-
+USER_SHARE     = 801134713433     # User's pool share
+FIRST_BLOCK    = 611552           # The fist block after 10/1/2020 00:00 UTC
+LAST_BLOCK     = 905107           # The latest block
+STEP           = 625              # approx. 1 hr
+MAX_SLEEP_TIME = 3
 
 #-------------------------------------------------------------------------------
 # Helper functions
@@ -63,7 +63,7 @@ def _url(asset, block_number):
 
 def _random_sleep(max_seconds):
     sleep_time = random.randint(0, max_seconds)
-    _info('Sleeping zzz...', seconds=sleep_time)
+    _info('Sleeping...', seconds=sleep_time)
     sleep(sleep_time)
 
 
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     try:
         for block_number in range(FIRST_BLOCK, LAST_BLOCK + 1, STEP):
             df = fetch_data(df, block_number)
-            _random_sleep(5)  # Sleep a random time (0 - 5 sec) to prevent the server from banning me
+            _random_sleep(MAX_SLEEP_TIME)  # Sleep a random time (0 - 5 sec) to prevent the server from banning me
     except KeyboardInterrupt:
         _warn('User interruption! Saving data...')
         _save_data_and_exit(df)
@@ -184,3 +184,4 @@ if __name__ == '__main__':
         _save_data_and_exit(df)
 
     _info('Done!')
+    _save_data_and_exit(df)
