@@ -5,6 +5,7 @@ import pandas as pd
 # from urllib.request import urlopen
 import requests
 
+import asset_list
 from utils import *
 
 
@@ -17,49 +18,12 @@ __all__ = [ 'fetch_data' ]
 
 DATA_DIR       = os.path.abspath('../data')
 LAST_BLOCK     = 905107
-LAST_BLOCK     = 80000  # for debugging
+# LAST_BLOCK     = 80000  # for debugging
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 3
 
-LIST_ASSETS = sorted([
-    # 'BNB.FRM-DE7',
-    # 'BNB.SHR-DB6',
-    # 'BNB.NEXO-A84',
-    'BNB.BNB',
-    # 'BNB.CAS-167',
-    # 'BNB.LTC-F07',
-    # 'BNB.TRXB-2E6',
-    # 'BNB.UNI-DD8',
-    # 'BNB.BOLT-4C6',
-    # 'BNB.ERD-D06',
-    # 'BNB.SWINGBY-888',
-    # 'BNB.XRP-BF2',
-    # 'BNB.BEAR-14C',
-    # 'BNB.CAN-677',
-    'BNB.BTCB-1DE',
-    'BNB.BUSD-BD1',
-    # 'BNB.COTI-CBB',
-    # 'BNB.AVA-645',
-    # 'BNB.BCH-1FD',
-    # 'BNB.GIV-94E',
-    # 'BNB.LIT-099',
-    # 'BNB.TWT-8C2',
-    # 'BNB.AWC-986',
-    # 'BNB.DARC-24B',
-    'BNB.ETH-1C9',
-    # 'BNB.ETHBULL-D33',
-    # 'BNB.FTM-A64',
-    # 'BNB.WISH-2D5',
-    # 'BNB.BZNT-464',
-    # 'BNB.EOSBULL-F0D',
-    # 'BNB.PROPEL-6D9',
-    # 'BNB.CBIX-3C9',
-    # 'BNB.DOS-120',
-    # 'BNB.MITX-CAA',
-    # 'BNB.VIDT-F53',
-    'BNB.BULL-BE4',
-    # 'BNB.LTO-BDF'
-])
+LIST_ASSETS = sorted(asset_list.major_assets)
+
 
 FIRST_BLOCK = { asset: 65000 for asset in LIST_ASSETS }  # The first pool was created shortly after block 65000 so it's a good place to start
 
