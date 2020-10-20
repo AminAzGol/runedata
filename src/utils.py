@@ -81,9 +81,9 @@ def _save_data(df, filename):
 
     if len(df) > 0:
         df.to_csv(filename, index=False)
-        info('Data saved!', filename=filename, total_rows=len(df))
+        info('Data saved!', filename=filename.split('/')[-1], total_rows=len(df))
     else:
-        warn('Skipped empty DataFrame', filename=filename)
+        warn('Skipped empty DataFrame', filename=filename.split('/')[-1])
 
 
 def save_data_and_exit(dfs, data_dir):
