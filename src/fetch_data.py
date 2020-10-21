@@ -1,5 +1,4 @@
 import json
-from math import sqrt
 import os
 import pandas as pd
 # from urllib.request import urlopen
@@ -17,13 +16,12 @@ __all__ = [ 'fetch_data' ]
 #-------------------------------------------------------------------------------
 
 DATA_DIR       = os.path.abspath('../data')
-LAST_BLOCK     = 905107
+LAST_BLOCK     = 911897
 # LAST_BLOCK     = 80000  # for debugging
 STEP           = 625    # approx. 1 hr
-MAX_SLEEP_TIME = 3
+MAX_SLEEP_TIME = 1
 
 LIST_ASSETS = sorted(asset_list.major_assets)
-
 
 FIRST_BLOCK = { asset: 65000 for asset in LIST_ASSETS }  # The first pool was created shortly after block 65000 so it's a good place to start
 

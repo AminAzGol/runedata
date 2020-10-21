@@ -1,15 +1,15 @@
 # Most popular assets that most user will LP with
 major_assets = [
     'BNB.BNB',
-    'BNB.BTCB-1DE',
-    'BNB.BULL-BE4',
     'BNB.BUSD-BD1',
-    'BNB.ETH-1C9',
-    'BNB.TWT-8C2',
+    'BNB.BTCB-1DE',
+    'BNB.ETH-1C9'
 ]
 
 # Less populer ones
 other_assets = [
+    'BNB.BULL-BE4',
+    'BNB.TWT-8C2',
     'BNB.FRM-DE7',
     'BNB.SHR-DB6',
     'BNB.NEXO-A84',
