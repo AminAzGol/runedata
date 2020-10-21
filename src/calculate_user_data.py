@@ -1,6 +1,6 @@
 from math import sqrt
 import pandas as pd
-# from tqdm import tqdm
+from tqdm import tqdm
 
 from utils import *
 
@@ -21,6 +21,10 @@ _columns = [
 ]
 
 
+#-------------------------------------------------------------------------------
+# Helper functions
+#-------------------------------------------------------------------------------
+
 def _get_prices(asset_row, busd_row):
     rune_in_usd = busd_row['balance_asset'] / busd_row['balance_rune']
     asset_in_rune = asset_row['balance_rune'] / asset_row['balance_asset']
@@ -33,6 +37,10 @@ def _get_user_shares(usd_invested, asset_row, busd_row):
     share_price = (asset_row['balance_rune'] * rune_price + asset_row['balance_asset'] * asset_price) / asset_row['pool_units'] / 10e7
     return usd_invested / share_price
 
+
+#-------------------------------------------------------------------------------
+# The main function
+#-------------------------------------------------------------------------------
 
 def calculate_user_data(usd_invested, time_invested, asset_data, busd_data):
     # Assert that both the asset pool and price data exist at the time of investment
@@ -64,8 +72,8 @@ def calculate_user_data(usd_invested, time_invested, asset_data, busd_data):
 
     user_data = []
 
-    # for idx in range(5):
-    for idx in range(len(asset_data)):
+    info('Calculating user data', total_rows=len(asset_data))
+    for idx in tqdm(range(len(asset_data))):
         # Asset prices in USD
         rune_price, asset_price = _get_prices(asset_data.loc[idx], busd_data.loc[idx])
 
@@ -97,41 +105,46 @@ def calculate_user_data(usd_invested, time_invested, asset_data, busd_data):
             total_gains = total_value / hodl_value - 1
 
         user_data.append({
-            'block_number': asset_data.loc[idx]['block_number'],
-            'timestamp': asset_data.loc[idx]['timestamp'],
-            'rune_price': rune_price,
-            'asset_price': asset_price,
-            'rune_balance': rune_balance,
+            'block_number':  asset_data.loc[idx]['block_number'],
+            'timestamp':     asset_data.loc[idx]['timestamp'],
+            'rune_price':    rune_price,
+            'asset_price':   asset_price,
+            'rune_balance':  rune_balance,
             'asset_balance': asset_balance,
-            'rune_value': rune_value,
-            'asset_value': asset_value,
-            'total_value': total_value,
-            'fee_accrual': fee_accrual,
-            'imperm_loss': imperm_loss,
-            'total_gains': total_gains
+            'rune_value':    rune_value,
+            'asset_value':   asset_value,
+            'total_value':   total_value,
+            'fee_accrual':   fee_accrual,
+            'imperm_loss':   imperm_loss,
+            'total_gains':   total_gains
         })
-    info('User data calculated', **user_data[0])
-    info('User data calculated', **user_data[-1])
 
     return pd.DataFrame(user_data, columns=_columns)
 
 
+#-------------------------------------------------------------------------------
+# Testing
+#-------------------------------------------------------------------------------
+
+# TIME_INVESTED = 1598952349  # earliest time possible, block 157500, 9/1/2020 09:25 UTC
+TIME_INVESTED = 1600732800  # 9/22/2020 where @Bitcoin_Sage's data collected started
+# TIME_INVESTED = 1600926395  # time where yields have stablized, block 506250, 9/24/2020 03:53 UTC
+# TIME_INVESTED = 1601510400  # 10/1/2020 00:00 UTC
+
+ASSET = 'BNB.BNB'
+# ASSET = 'BNB.BUSD-BD1'
+# ASSET = 'BNB.BTCB-1DE'
+# ASSET = 'BNB.ETH-1C9'
+
 if __name__ == '__main__':
-    # time_invested = 1598952349  # earliest time possible, block 157500, 9/1/2020 09:25 UTC
-    time_invested = 1600732800  # 9/22/2020 where @Bitcoin_Sage's data collected started
-    # time_invested = 1600926395  # time where yields have stablized, block 506250, 9/24/2020 03:53 UTC
-    # time_invested = 1601510400  # 10/1/2020 00:00 UTC
-
-    user_data = calculate_user_data(
-        usd_invested=10000,
-        time_invested=time_invested,
-        asset_data=pd.read_csv('../data/pool_BNB.BNB.csv'),
-        busd_data=pd.read_csv('../data/pool_BNB.BUSD-BD1.csv')
-    )
-
     from datetime import datetime
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mtick
+
+    asset_data = pd.read_csv('../data/pool_{}.csv'.format(ASSET))
+    busd_data = pd.read_csv('../data/pool_BNB.BUSD-BD1.csv')
+
+    user_data = calculate_user_data(10000, TIME_INVESTED, asset_data, busd_data)
 
     # Timestamps to datetime object
     dates = [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ]
