@@ -73,10 +73,11 @@ submit_btn = st.sidebar.button('Submit')
 
 faq = [
     st.title('How does this work?'),
-    st.write('FAQ contents here')
+    st.markdown('FAQ contents here')
 ]
 
 def _clear_faq():
+    print('faq', faq)
     for widget in faq:
         widget.empty()
 
@@ -96,14 +97,14 @@ if submit_btn:
         # index_by=???
     )
 
-    st.header('Summary')
-    st.write('Lorem ipsum')
-
     st.header('Investment Value')
     st.pyplot(src.plot_gains_breakdown(user_data))
 
     st.header('Gains/Losses Breakdown')
     st.pyplot(src.plot_gains_breakdown(user_data))
+
+    st.header('Summary')
+    st.write('Lorem ipsum')
 
     st.header('Strategy Comparison')
     st.write('Lorem ipsum')
