@@ -33,6 +33,20 @@ ASSETS = [
 ]
 
 
+# Increace max width of main page container
+# https://discuss.streamlit.io/t/where-to-set-page-width-when-set-into-non-widescreeen-mode/959
+st.markdown(
+    f'''
+        <style>
+            .reportview-container .main .block-container {{
+                max-width: 1000px;
+            }}
+        </style>
+    ''',
+    unsafe_allow_html=True
+)
+
+
 #-------------------------------------------------------------------------------
 # Sidebar
 #-------------------------------------------------------------------------------
@@ -97,11 +111,12 @@ if submit_btn:
         # index_by=???
     )
 
-    st.header('Investment Value')
-    st.pyplot(src.plot_gains_breakdown(user_data))
+    st.header('Value of Investment')
+    st.pyplot(src.plot_gains_breakdown_pyplot(user_data))
 
     st.header('Gains/Losses Breakdown')
-    st.pyplot(src.plot_gains_breakdown(user_data))
+    st.altair_chart(src.plot_gains_breakdown(user_data), use_container_width=True)
+    # st.pyplot(src.plot_gains_breakdown_pyplot(user_data))
 
     st.header('Summary')
     st.write('Lorem ipsum')
