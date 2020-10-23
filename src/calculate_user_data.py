@@ -36,17 +36,17 @@ def _get_prices(asset_row, busd_row):
     return rune_in_usd, asset_in_usd
 
 
-def _get_user_shares(usd_invested, asset_row, busd_row):
+def _get_user_shares(amount_invested, asset_row, busd_row):
     rune_price, asset_price = _get_prices(asset_row, busd_row)
     share_price = (asset_row['balance_rune'] * rune_price + asset_row['balance_asset'] * asset_price) / asset_row['pool_units'] / 10e7
-    return usd_invested / share_price
+    return amount_invested / share_price
 
 
 #-------------------------------------------------------------------------------
 # The main function
 #-------------------------------------------------------------------------------
 
-def calculate_user_data(usd_invested, time_invested, asset_data, busd_data):
+def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
     # Assert that both the asset pool and price data exist at the time of investment
     if time_invested < asset_data.loc[0]['timestamp']:
         error('Asset pool does not exist at the time of investment!')
@@ -71,7 +71,7 @@ def calculate_user_data(usd_invested, time_invested, asset_data, busd_data):
     busd_data.reset_index(drop=True, inplace=True)
 
     # Calculate user's share in pool
-    user_share = _get_user_shares(usd_invested, asset_data.loc[0], busd_data.loc[0])
+    user_share = _get_user_shares(amount_invested, asset_data.loc[0], busd_data.loc[0])
     info('Determined user share', user_share=user_share)
 
     user_data = []
