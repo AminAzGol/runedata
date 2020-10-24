@@ -12,17 +12,33 @@ import pandas as pd
 # Plot using Altair
 #-------------------------------------------------------------------------------
 
+def plot_value_of_investment(user_data, baselines):
+    data = pd.DataFrame({
+        'date': [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ] * 3,
+        'value': user_data['total_value'].tolist() + baselines['hold_rune'].tolist() + baselines['hold_asset'].tolist(),
+        'type': ['LP'] * len(user_data) + ['hold_rune'] * len(user_data) + ['hold_asset'] * len(user_data)
+    })
+
+    chart = alt.Chart(data).mark_line().encode(
+        x=alt.X('date', axis=alt.Axis(format='%_m/%_d')),
+        y=alt.Y('value', axis=alt.Axis(format='$d'), scale=alt.Scale(domain=[min(data.value), max(data.value)])),
+        color='type'
+    )
+    chart.height = 500
+    return chart
+
+
 def plot_gains_breakdown(user_data):
     data = pd.DataFrame({
         'date': [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ] * 3,
         'gains/losses': user_data['fee_accrual'].tolist() + user_data['imperm_loss'].tolist() + user_data['total_gains'].tolist(),
-        'gl_type': ['fee_accrual'] * len(user_data) + ['imperm_loss'] * len(user_data) + ['total_gains'] * len(user_data)
+        'type': ['fee_accrual'] * len(user_data) + ['imperm_loss'] * len(user_data) + ['total_gains'] * len(user_data)
     })
 
     chart = alt.Chart(data).mark_line().encode(
         x=alt.X('date', axis=alt.Axis(format='%_m/%_d')),
         y=alt.Y('gains/losses', axis=alt.Axis(format='%')),
-        color='gl_type'
+        color='type'
     )
     chart.height = 500
     return chart

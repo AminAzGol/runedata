@@ -6,10 +6,10 @@ from .utils import *
 from .plot_data import *
 
 
-__all__ = [ 'calculate_user_data' ]
+__all__ = [ 'calculate_user_data', 'calculate_baselines' ]
 
 
-_columns = [
+_user_columns = [
     'block_number',
     'timestamp',
     'rune_price',
@@ -22,6 +22,14 @@ _columns = [
     'fee_accrual',
     'imperm_loss',
     'total_gains'
+]
+
+_baseline_columns = [
+    'block_number',
+    'timestamp',
+    'hold_both',
+    'hold_rune',
+    'hold_asset'
 ]
 
 
@@ -43,7 +51,7 @@ def _get_user_shares(amount_invested, asset_row, busd_row):
 
 
 #-------------------------------------------------------------------------------
-# The main function
+# Calculate user data
 #-------------------------------------------------------------------------------
 
 def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
@@ -77,7 +85,7 @@ def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
     user_data = []
 
     info('Calculating user data', total_rows=len(asset_data))
-    for idx in tqdm(range(len(asset_data))):
+    for idx in tqdm(range(len(asset_data)), desc='User data'):
         # Asset prices in USD
         rune_price, asset_price = _get_prices(asset_data.loc[idx], busd_data.loc[idx])
 
@@ -123,4 +131,27 @@ def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
             'total_gains':   total_gains
         })
 
-    return pd.DataFrame(user_data, columns=_columns)
+    return pd.DataFrame(user_data, columns=_user_columns)
+
+
+#-------------------------------------------------------------------------------
+# Calculate user data
+#-------------------------------------------------------------------------------
+
+def calculate_baselines(user_data):
+    data = []
+    row = user_data.loc[0]
+    init_investment = row['rune_balance'] * row['rune_price'] + row['asset_balance'] * row['asset_price']
+
+    for idx, row in tqdm(user_data.iterrows(), desc='baselines'):
+        hold_rune = init_investment * row['rune_price'] / user_data.loc[0]['rune_price']
+        hold_asset = init_investment * row['asset_price'] / user_data.loc[0]['asset_price']
+        data.append({
+            'block_number': row['block_number'],
+            'timestamp':    row['timestamp'],
+            'hold_rune':    hold_rune,
+            'hold_asset':   hold_asset,
+            'hold_both':    0.5 * hold_rune + 0.5 * hold_asset
+        })
+
+    return pd.DataFrame(data, columns=_baseline_columns)
