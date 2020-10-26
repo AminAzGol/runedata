@@ -16,7 +16,7 @@ __all__ = [ 'fetch_data' ]
 #-------------------------------------------------------------------------------
 
 DATA_DIR       = os.path.abspath('../data')
-LAST_BLOCK     = 952071
+LAST_BLOCK     = 993782
 # LAST_BLOCK     = 80000  # for debugging
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 1

@@ -44,6 +44,10 @@ def plot_gains_breakdown(user_data):
     return chart
 
 
+def plot_future_returns(fee_accrual, imperm_loss, total_gains):
+    return None
+
+
 #-------------------------------------------------------------------------------
 # Deprecated: plot using Matplotlib
 #-------------------------------------------------------------------------------

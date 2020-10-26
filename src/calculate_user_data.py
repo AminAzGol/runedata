@@ -6,7 +6,7 @@ from .utils import *
 from .plot_data import *
 
 
-__all__ = [ 'calculate_user_data', 'calculate_baselines' ]
+__all__ = [ 'calculate_user_data', 'calculate_baselines', 'calculate_future_returns' ]
 
 
 _user_columns = [
@@ -155,3 +155,11 @@ def calculate_baselines(user_data):
         })
 
     return pd.DataFrame(data, columns=_baseline_columns)
+
+
+#-------------------------------------------------------------------------------
+# Predict future returns
+#-------------------------------------------------------------------------------
+
+def calculate_future_returns(user_data, future_date, use_avg, rune_target, asset_target):
+    pass
