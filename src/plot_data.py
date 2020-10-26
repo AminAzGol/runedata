@@ -5,9 +5,6 @@ import matplotlib.ticker as mtick
 import pandas as pd
 
 
-# __all__ = [ 'plot_gains_breakdown' ]
-
-
 #-------------------------------------------------------------------------------
 # Plot using Altair
 #-------------------------------------------------------------------------------
@@ -28,7 +25,7 @@ def plot_value_of_investment(user_data, baselines):
     return chart
 
 
-def plot_gains_breakdown(user_data):
+def plot_pool_rewards(user_data):
     data = pd.DataFrame({
         'date': [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ] * 3,
         'gains/losses': user_data['fee_accrual'].tolist() + user_data['imperm_loss'].tolist() + user_data['total_gains'].tolist(),
@@ -44,7 +41,39 @@ def plot_gains_breakdown(user_data):
     return chart
 
 
-def plot_future_returns(fee_accrual, imperm_loss, total_gains):
+def plot_gains_breakdown(breakdown):
+    data = pd.DataFrame({
+        'type': ['rune_movement', 'asset_movement', 'fee_accrued', 'imperm_loss', 'total_gains'],
+        'value': [
+            breakdown['rune_movement']['value'],
+            breakdown['asset_movement']['value'],
+            breakdown['fees']['value'],
+            breakdown['imp_loss']['value'],
+            sum([
+                breakdown['rune_movement']['value'],
+                breakdown['asset_movement']['value'],
+                breakdown['fees']['value'],
+                breakdown['imp_loss']['value']
+            ])
+        ]
+    })
+    print(data)
+
+    bars = alt.Chart(data).mark_bar().encode(
+        x='type',
+        y='value'
+    )
+    text = bars.mark_text(
+        align='center',
+        baseline='top'
+    ).encode(
+        text='value'
+    )
+    bars.height = 500
+    return bars + text
+
+
+def plot_future_gains_breakdown(fee_accrual, imperm_loss, total_gains):
     return None
 
 
@@ -81,4 +110,52 @@ def plot_gains_breakdown_pyplot(user_data):
     plt.tight_layout()
     # plt.show()
 
+    return fig
+
+
+def plot_gains_breakdown_pyplot(breakdown):
+    types = [
+        'rune_move',
+        'asset_move',
+        'fee_accrued',
+        'imperm_loss',
+        'total_gains'
+    ]
+    values = [
+        breakdown['rune_movement']['value'],
+        breakdown['asset_movement']['value'],
+        breakdown['fees']['value'],
+        breakdown['imp_loss']['value'],
+        breakdown['total']['value']
+    ]
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    barlist = plt.bar(range(len(types)), values)
+
+    # Set bar colors - green if positive, red if negative, magenta for total
+    for bar, val in zip(barlist[:-1], values[:-1]):
+        bar.set_color('g' if val >=0 else 'r')
+    barlist[-1].set_color('magenta')
+
+    # https://stackoverflow.com/questions/28931224/adding-value-labels-on-a-matplotlib-bar-chart
+    for rect, val in zip(ax.patches, values):
+        y = rect.get_height()
+        x = rect.get_x() + rect.get_width() / 2
+
+        spacing = 2.5 if val >= 0 else -2.5
+        va = 'bottom' if val >=0 else 'top'
+        label = '{}${:,.2f}'.format('+' if val >= 0 else '-', abs(val))
+
+        ax.annotate(
+            label,
+            (x, y),
+            xytext=(0, spacing),
+            textcoords='offset points',
+            ha='center',
+            va=va
+        )
+
+    plt.ylabel('Value ($)')
+    plt.xticks(range(len(types)), types)
+    plt.axhline(0, color='black', linewidth=1)  # Horizontal line at y = 0
     return fig

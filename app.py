@@ -43,6 +43,9 @@ st.markdown(
             .reportview-container .main .block-container {{
                 max-width: 1000px;
             }}
+            img {{
+                max-width: 600px;
+            }}
         </style>
     ''',
     unsafe_allow_html=True
@@ -106,8 +109,10 @@ predict_btn = st.sidebar.button('Predict', key='predict_btn')
 st.sidebar.text('')
 st.sidebar.text('')
 st.sidebar.text('')
-st.sidebar.info('Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom)')
-# st.sidebar.info('[Source code](https://github.com/Larrypcdotcom/thorchain-lp-data) on GitHub')
+st.sidebar.info('Based on data last updated at **{}**'.format(
+    datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
+))
+
 
 
 #-------------------------------------------------------------------------------
@@ -122,6 +127,11 @@ faq = [
 
 To predict the returns of your LP in the future, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
 of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
+    st.text(''),
+    st.text(''),
+    st.markdown('''> Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom) &middot; [code](https://github.com/Larrypcdotcom/thorchain-lp-data) on GitHub.
+>
+> Interested in contributing? Join the **THORChain Apps Team** [Discord channel]().''')
 ]
 
 def _clear_faq():
@@ -131,13 +141,9 @@ def _clear_faq():
 
 
 #-------------------------------------------------------------------------------
-# Button action
+# Helper functions
 #-------------------------------------------------------------------------------
 
-def _show_last_update_time():
-    st.info('Based on data last updated at **{}**'.format(
-        datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
-    ))
 
 # https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/2
 def _get_table_download_link(df):
@@ -171,6 +177,10 @@ def _get_percent_change(value, baseline, show_sign=True):
     return '<span style="color:{}">{}{:.1f}%</span>'.format(color, sign, percentage)
 
 
+#-------------------------------------------------------------------------------
+# Button actions
+#-------------------------------------------------------------------------------
+
 if view_btn:
     _clear_faq()
 
@@ -182,6 +192,8 @@ if view_btn:
     )
 
     baselines = src.calculate_baselines(user_data)
+
+    breakdown = src.calculate_gains_breakdown(user_data)
 
     st.title('Value of Investment')
     st.text('')  # add some vertical space
@@ -207,7 +219,7 @@ if view_btn:
     st.text('')
     st.altair_chart(src.plot_value_of_investment(user_data, baselines), use_container_width=True)
 
-    st.title('Gains/Losses Breakdown')
+    st.title('Pool Rewards')
     st.text('')
 
     st.markdown('''Compared to holding 50:50 **RUNE** & **{}** passively, you gained **{}** from fees & rewards accrued,
@@ -227,14 +239,46 @@ if view_btn:
     ), unsafe_allow_html=True)
 
     st.text('')
-    st.altair_chart(src.plot_gains_breakdown(user_data), use_container_width=True)
+    st.altair_chart(src.plot_pool_rewards(user_data), use_container_width=True)
+
+    st.title('Gains/Losses Breakdown')
+    st.text('')
+
+    st.markdown('''You {} **${:,.2f}** (**{}**) due to **RUNE** price going {}, and {} **${:,.2f}** (**{}**) due to **{}** price going {}.'''.format(
+        'gained' if breakdown['rune_movement']['value'] >= 0 else 'lost',
+        abs(breakdown['rune_movement']['value']),
+        _get_percent_change(breakdown['rune_movement']['percentage'], 0.),
+        'up' if breakdown['rune_movement']['value'] >= 0 else 'down',
+        'gained' if breakdown['asset_movement']['value'] >= 0 else 'lost',
+        abs(breakdown['asset_movement']['value']),
+        _get_percent_change(breakdown['asset_movement']['percentage'], 0.),
+        investment['asset']['symbol'],
+        'up' if breakdown['asset_movement']['value'] >= 0 else 'down',
+    ), unsafe_allow_html=True)
+
+    st.markdown('''You gained **${:,.2f}** (**{}**) from fees & rewards from LP, and lost **${:,.2f}** (**{}**) due to impermanent loss.'''.format(
+        breakdown['fees']['value'],
+        _get_percent_change(breakdown['fees']['percentage'], 0.),
+        abs(breakdown['imp_loss']['value']),
+        _get_percent_change(breakdown['imp_loss']['percentage'], 0.),
+    ), unsafe_allow_html=True)
+
+    st.markdown('Overall, you are {} **${:,.2f}** (**{}**) compared to your initial investment.'.format(
+        'up' if breakdown['total']['value'] >= 0 else 'down',
+        abs(breakdown['total']['value']),
+        _get_percent_change(breakdown['total']['percentage'], 0.)
+    ), unsafe_allow_html=True)
+
+    st.text('')
+
+    # For this one, pyplot actually looks better than altair
+    # st.altair_chart(src.plot_gains_breakdown(breakdown), use_container_width=True)
+    st.pyplot(src.plot_gains_breakdown_pyplot(breakdown))
 
     # Let user download their data as a CSV which can be imported to Skittles
     # https://twitter.com/mehowbrains/status/1317291144640974849
-    # Doesn't work very well yet!
+    # Doesn't work very well yet!!!
     # st.markdown(_get_table_download_link(user_data), unsafe_allow_html=True)
-
-    _show_last_update_time()
 
 
 if predict_btn:
@@ -256,9 +300,13 @@ if predict_btn:
         user_data.iloc[-1]['total_value'], pred_params['future_date'].strftime('%m/%d/%Y')
     ))
 
+    st.text('')
     # st.table()
 
     st.title('Gains/Losses Breakdown')
     st.text('')
 
-    _show_last_update_time()
+    st.markdown('')
+
+    st.text('')
+    # st.altair_chart(src.plot_future_gains_breakdown(user_data), use_container_width=True)

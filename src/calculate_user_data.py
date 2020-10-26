@@ -6,7 +6,7 @@ from .utils import *
 from .plot_data import *
 
 
-__all__ = [ 'calculate_user_data', 'calculate_baselines', 'calculate_future_returns' ]
+__all__ = [ 'calculate_user_data', 'calculate_baselines', 'calculate_gains_breakdown', 'calculate_future_returns' ]
 
 
 _user_columns = [
@@ -135,7 +135,7 @@ def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
 
 
 #-------------------------------------------------------------------------------
-# Calculate user data
+# Calculate baselines
 #-------------------------------------------------------------------------------
 
 def calculate_baselines(user_data):
@@ -158,8 +158,93 @@ def calculate_baselines(user_data):
 
 
 #-------------------------------------------------------------------------------
+# Calculate gains/loss breakdown
+#-------------------------------------------------------------------------------
+
+def calculate_gains_breakdown(user_data):
+    start_total_value = user_data.loc[0]['total_value']
+
+    start_rune_bal = user_data.loc[0]['rune_balance']
+    start_asset_bal = user_data.loc[0]['asset_balance']
+    end_rune_bal = user_data.iloc[-1]['rune_balance']
+    end_asset_bal = user_data.iloc[-1]['asset_balance']
+
+    start_rune_price = user_data.loc[0]['rune_price']
+    start_asset_price = user_data.loc[0]['asset_price']
+    end_rune_price = user_data.iloc[-1]['rune_price']
+    end_asset_price = user_data.iloc[-1]['asset_price']
+
+    start_k = start_rune_bal * start_asset_bal
+    end_k = end_rune_bal * end_asset_bal
+
+    # Gain/loss due to RUNE price movement
+    rune_movement = start_rune_bal * (end_rune_price - start_rune_price)
+
+    # Gain/loss due to ASSET price movement
+    asset_movement = start_asset_bal * (end_asset_price - start_asset_price)
+
+    # RUNE & ASSET balances at the end IF NO FEE WAS RECEIVED
+    end_rune_bal_no_fee = end_rune_bal * ((start_k / end_k) ** 0.5)
+    end_asset_bal_no_fee = end_asset_bal * ((start_k / end_k) ** 0.5)
+
+    # Fees
+    fees = (end_rune_bal - end_rune_bal_no_fee) * end_rune_price + (end_asset_bal - end_asset_bal_no_fee) * end_asset_price
+
+    # Imperm loss
+    imp_loss = (end_rune_bal_no_fee - start_rune_bal) * end_rune_price + (end_asset_bal_no_fee - start_asset_bal) * end_asset_price
+
+    # Total
+    total = rune_movement + asset_movement + fees + imp_loss
+
+    return {
+        'rune_movement': {
+            'value': rune_movement,
+            'percentage': rune_movement / start_total_value
+        },
+        'asset_movement': {
+            'value': asset_movement,
+            'percentage': asset_movement / start_total_value
+        },
+        'fees': {
+            'value': fees,
+            'percentage': fees / start_total_value
+        },
+        'imp_loss': {
+            'value': imp_loss,
+            'percentage': imp_loss / start_total_value
+        },
+        'total': {
+            'value': total,
+            'percentage': total / start_total_value
+        }
+    }
+
+
+#-------------------------------------------------------------------------------
 # Predict future returns
 #-------------------------------------------------------------------------------
 
 def calculate_future_returns(user_data, future_date, use_avg, rune_target, asset_target):
-    pass
+    # Calculate the fee ROI the last x days
+    if use_avg == '3 days':
+        start_row = user_data.iloc[-3 * 24]  # 1 hr per row, so 3 days is 3 * 24 rows
+    elif use_avg == '7 days':
+        start_row = user_data.iloc[-7 * 24]
+    elif use_avg == '14 days':
+        start_row = user_data.iloc[-14 * 24]
+    elif use_avg == '30 days':
+        start_row = user_data.iloc[-30 * 24]
+    else:
+        raise Exception('Invalid `use_avg` value')
+
+    start_time = start_row['timestamp']
+    start_fees = start_row['fee_accrued']
+    latest_time = user_data.iloc[-1]['timestamp']
+    latest_fees = user_data.iloc[-1]['fee_accrued']
+
+    num_days = (latest_time - start_time) / 60 / 60 / 24
+    roi = latest_value / start_value - 1
+    apy = (roi + 1) ** (365 / num_days)
+
+    # Extrapolate fee income to the future date
+    # roi_extrap =
