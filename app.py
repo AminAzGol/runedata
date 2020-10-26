@@ -35,7 +35,7 @@ ASSETS = [
 ]
 
 
-# Increace max width of main page container
+# Increace width of the main page container and reduce size of matplotlib graphics
 # https://discuss.streamlit.io/t/where-to-set-page-width-when-set-into-non-widescreeen-mode/959
 st.markdown(
     f'''
@@ -120,7 +120,7 @@ st.sidebar.info('Based on data last updated at **{}**'.format(
 #-------------------------------------------------------------------------------
 
 faq = [
-    st.title('This tool helps you view the historical performance of your liquidity pool on THORChain and perdict its future returns.'),
+    st.title('This tool helps you evaluate historical performance of your [THORChain](https://thorchain.org/) liquidity pools and predict their future returns.'),
     st.text(''),
     st.text(''),
     st.markdown('''To view the past performance of your LP, fill out the first section of the left panel, then hit "View".
@@ -156,9 +156,8 @@ def _out_or_under(value, baseline):
     return 'outperforms' if value >= baseline else 'underperforms'
 
 
-def _get_apy(start_time, end_time, total_value, baseline):
+def _roi_to_apy(start_time, end_time, roi):
     num_days = (end_time - start_time) / 60 / 60 / 24
-    roi = total_value / baseline - 1
     return (1 + roi) ** (365 / num_days) - 1
 
 
@@ -223,7 +222,8 @@ if view_btn:
     st.text('')
 
     st.markdown('''Compared to holding 50:50 **RUNE** & **{}** passively, you gained **{}** from fees & rewards accrued,
-    and lost **{}** due to asset price movements. Overall, LP **{}** HODL by **{}**.'''.format(
+    and lost **{}** due to [impermanent loss (IL)](https://pintail.medium.com/understanding-uniswap-returns-cc593f3499ef).
+    Overall, LP **{}** HODL by **{}**.'''.format(
         investment['asset']['symbol'],
         _get_percent_change(user_data.iloc[-1]['fee_accrual'], 0., show_sign=False),
         _get_percent_change(user_data.iloc[-1]['imperm_loss'], 0., show_sign=False),
@@ -231,10 +231,11 @@ if view_btn:
         _get_percent_change(user_data.iloc[-1]['total_gains'], 0., show_sign=False)
     ), unsafe_allow_html=True)
 
-    st.markdown('''Extrapolating to a year, compounded daily, the APY is approximately **{}**.'''.format(
-        _get_percent_change(_get_apy(
-            user_data.loc[0]['timestamp'], user_data.iloc[-1]['timestamp'],
-            user_data.loc[0]['total_value'], baselines.iloc[-1]['hold_both']
+    st.markdown('''Extrapolating to a year, compounded daily, the fee APY (not including IL) is approximately **{}**.'''.format(
+        _get_percent_change(_roi_to_apy(
+            start_time=user_data.loc[0]['timestamp'],
+            end_time=user_data.iloc[-1]['timestamp'],
+            roi=user_data.iloc[-1]['fee_accrual'],
         ), 0., show_sign=False)
     ), unsafe_allow_html=True)
 
@@ -256,7 +257,7 @@ if view_btn:
         'up' if breakdown['asset_movement']['value'] >= 0 else 'down',
     ), unsafe_allow_html=True)
 
-    st.markdown('''You gained **${:,.2f}** (**{}**) from fees & rewards from LP, and lost **${:,.2f}** (**{}**) due to impermanent loss.'''.format(
+    st.markdown('''You gained **${:,.2f}** (**{}**) from fees & LP rewards, and lost **${:,.2f}** (**{}**) due to impermanent loss.'''.format(
         breakdown['fees']['value'],
         _get_percent_change(breakdown['fees']['percentage'], 0.),
         abs(breakdown['imp_loss']['value']),
