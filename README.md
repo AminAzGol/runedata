@@ -30,10 +30,17 @@ streamlit run app.py
 
 ## Deploy to Heroku
 
+Install Heroku CLI tool:
+
+```bash
+brew tap heroku/brew && brew install heroku  # masOS
+sudo snap install --classic heroku  # Ubuntu
+```
+
 Create a new project on Heroku website, then
 
 ```bash
-heroku git:remote -a yourprojectname  # Add Heroku app as a remote repo
+heroku git:remote -a yourprojectname  # add Heroku app as a remote repo
 git push heroku HEAD:master
 ```
 
