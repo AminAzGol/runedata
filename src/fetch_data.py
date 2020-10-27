@@ -16,14 +16,11 @@ __all__ = [ 'fetch_data' ]
 #-------------------------------------------------------------------------------
 
 DATA_DIR       = os.path.abspath('../data')
-LAST_BLOCK     = 993782
-# LAST_BLOCK     = 80000  # for debugging
+LAST_BLOCK     = 1009353
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 1
-
-LIST_ASSETS = sorted(asset_list.major_assets)
-
-FIRST_BLOCK = { asset: 65000 for asset in LIST_ASSETS }  # The first pool was created shortly after block 65000 so it's a good place to start
+LIST_ASSETS    = [ '{}.{}'.format(asset['chain'], asset['symbol']) for asset in asset_list.assets ]
+FIRST_BLOCK    = { asset: 65000 for asset in LIST_ASSETS }  # The first pool was created shortly after block 65000 so it's a good place to start
 
 
 #-------------------------------------------------------------------------------
