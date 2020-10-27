@@ -11,31 +11,9 @@ import src
 DATA_DIR = os.path.abspath('./data')
 BUSD_DATA = pd.read_csv(os.path.join(DATA_DIR, 'pool_BNB.BUSD-BD1.csv'))
 
-ASSETS = [
-    {
-        'name': 'Binance Coin',
-        'chain': 'BNB',
-        'symbol': 'BNB'
-    },
-    {
-        'name': 'Binance USD',
-        'chain': 'BNB',
-        'symbol': 'BUSD-BD1'
-    },
-    {
-        'name': 'Bitcoin BEP2',
-        'chain': 'BNB',
-        'symbol': 'BTCB-1DE'
-    },
-    {
-        'name': 'Ether BEP2',
-        'chain': 'BNB',
-        'symbol': 'ETH-1C9'
-    }
-]
 
-
-# Increace width of the main page container and reduce size of matplotlib graphics
+# Increace width of the main page container
+# reduce size of tables and matplotlib graphics
 # https://discuss.streamlit.io/t/where-to-set-page-width-when-set-into-non-widescreeen-mode/959
 st.markdown(
     f'''
@@ -43,13 +21,74 @@ st.markdown(
             .reportview-container .main .block-container {{
                 max-width: 1000px;
             }}
-            img {{
+            .stTable {{
+                max-width: 400px;
+            }}
+            .image-container {{
                 max-width: 600px;
+            }}
+            img {{
+                max-width: 100%
             }}
         </style>
     ''',
     unsafe_allow_html=True
 )
+
+
+#-------------------------------------------------------------------------------
+# Default page content - FAQs
+#-------------------------------------------------------------------------------
+
+prices = []
+for asset in src.assets:
+    data = pd.read_csv(os.path.join(DATA_DIR, 'pool_{}.{}.csv').format(asset['chain'], asset['symbol']))
+    rune_price, asset_price = src.get_prices(data.iloc[-1], BUSD_DATA.iloc[-1])
+
+    if len(prices) == 0:
+        prices.append({
+            'Chain': 'BNB',
+            'Symbol': 'RUNE-B1A',
+            'Name': 'Rune',
+            'Price ($)': rune_price
+        })
+
+    prices.append({
+        'Chain': asset['chain'],
+        'Symbol': asset['symbol'],
+        'Name': asset['name'],
+        'Price ($)': asset_price
+    })
+
+prices = pd.DataFrame(prices, columns=['Chain', 'Symbol', 'Name', 'Price ($)'])
+
+
+faq = [
+    st.markdown('![header-image](https://via.placeholder.com/1000x200.png?text=header+image+here+1000x200)'),
+    st.title('This tool helps you evaluate historical performance of your [THORChain](https://thorchain.org/) liquidity pools and predict their future returns.'),
+    st.text(''),
+    st.markdown('''To view the past performance of your LP, fill out the first section of the left panel, then hit "View".
+
+To predict the returns of your LP in the future, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
+of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
+    st.header('Current Asset Prices'),
+    st.text(''),
+    st.dataframe(prices),
+    st.header('About'),
+    st.text(''),
+    st.markdown('''Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom)
+
+[Code available](https://github.com/Larrypcdotcom/thorchain-lp-data) under MIT license.
+For bug reports and feature requests, please [create an issue](https://github.com/Larrypcdotcom/thorchain-lp-data/issues/new) on GitHub.
+
+Interested in contributing? Join the **THORChain Community Apps Team** [Discord channel]().''')
+]
+
+
+def _clear_faq():
+    print('faq', faq)
+    for widget in faq:
+        widget.empty()
 
 
 #-------------------------------------------------------------------------------
@@ -61,7 +100,7 @@ st.sidebar.header('View Past Performance')
 investment = {
     'asset': st.sidebar.selectbox(
         label='Pool',
-        options=ASSETS,
+        options=src.assets,
         format_func=lambda asset: '{} ({}.{})'.format(asset['name'], asset['chain'], asset['symbol']),
         key='asset_0'
     ),
@@ -86,9 +125,10 @@ pred_params = {
         label='Predict results on...',
         min_value=datetime.now()
     ),
-    'use_avg': st.sidebar.selectbox(
+    'num_days_for_avg': st.sidebar.selectbox(
         label='Use average pool ROI of the last...',
-        options=['3 days', '7 days', '14 days', '30 days']
+        options=[3, 7, 14, 30],
+        format_func=lambda num_days: str(num_days) + ' days' if num_days > 1 else ' day'
     ),
     'rune_target': st.sidebar.number_input(
         label='Target price for RUNE ($)',
@@ -112,32 +152,6 @@ st.sidebar.text('')
 st.sidebar.info('Based on data last updated at **{}**'.format(
     datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
 ))
-
-
-
-#-------------------------------------------------------------------------------
-# Default page content - FAQs
-#-------------------------------------------------------------------------------
-
-faq = [
-    st.title('This tool helps you evaluate historical performance of your [THORChain](https://thorchain.org/) liquidity pools and predict their future returns.'),
-    st.text(''),
-    st.text(''),
-    st.markdown('''To view the past performance of your LP, fill out the first section of the left panel, then hit "View".
-
-To predict the returns of your LP in the future, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
-of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
-    st.text(''),
-    st.text(''),
-    st.markdown('''> Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom) &middot; [code](https://github.com/Larrypcdotcom/thorchain-lp-data) on GitHub.
->
-> Interested in contributing? Join the **THORChain Apps Team** [Discord channel]().''')
-]
-
-def _clear_faq():
-    print('faq', faq)
-    for widget in faq:
-        widget.empty()
 
 
 #-------------------------------------------------------------------------------
@@ -287,27 +301,52 @@ if predict_btn:
 
     user_data = src.calculate_user_data(
         amount_invested=investment['amount'],
-        time_invested=datetime.combine(investment['time'], datetime.min.time()).timestamp(),
+        time_invested=src.date_to_unix(investment['time']),
         asset_data=pd.read_csv(os.path.join(DATA_DIR, 'pool_{}.{}.csv'.format(investment['asset']['chain'], investment['asset']['symbol']))),
         busd_data=BUSD_DATA
     )
 
-    user_pred = src.calculate_future_returns(user_data, **pred_params)
+    pred = src.calculate_future_returns(user_data, **pred_params)
+
+    pred_organized = [
+        {
+            'Strategy': 'Keep prividing liquidity',
+            'Value ($)': pred['total_value']
+        },
+        {
+            'Strategy': 'Withdraw and hold as RUNE',
+            'Value ($)': user_data.iloc[-1]['total_value'] * pred_params['rune_target'] / user_data.iloc[-1]['rune_price']
+        },
+        {
+            'Strategy': 'Withdraw and hold as {}'.format(investment['asset']['symbol']),
+            'Value ($)': user_data.iloc[-1]['total_value'] * pred_params['asset_target'] / user_data.iloc[-1]['asset_price']
+        }
+    ]
+    pred_organized = sorted(pred_organized, key=lambda strat: strat['Value ($)'], reverse=True)
+    pred_organized = pd.DataFrame(pred_organized)
+    pred_organized.set_index('Strategy', inplace=True)
+
+    current_breakdown = src.calculate_gains_breakdown(user_data)
+    future_breakdown = src.calculate_gains_breakdown(pd.DataFrame([
+        user_data.to_dict(orient='records')[0],
+        pred
+    ]))
 
     st.title('Value of Investment')
     st.text('')
 
-    st.markdown('Based on the current value of **${:,.2f}**, your investment on **{}** will worth:'.format(
+    st.markdown('''Based on the current value of **${:,.2f}**, your investment as of **{}** will
+    worth the following, if you adopt the respective strategy form now on:'''.format(
         user_data.iloc[-1]['total_value'], pred_params['future_date'].strftime('%m/%d/%Y')
     ))
 
     st.text('')
-    # st.table()
+    st.table(pred_organized)
 
     st.title('Gains/Losses Breakdown')
     st.text('')
 
-    st.markdown('')
+    st.markdown('If you decide to keep providing liquidity, this is how your gains & loss would be like compared to the current values:')
 
     st.text('')
-    # st.altair_chart(src.plot_future_gains_breakdown(user_data), use_container_width=True)
+    st.pyplot(src.plot_gains_breakdown_compared_pyplot(current_breakdown, future_breakdown))

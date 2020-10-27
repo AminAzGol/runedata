@@ -6,9 +6,6 @@ from .utils import *
 from .plot_data import *
 
 
-__all__ = [ 'calculate_user_data', 'calculate_baselines', 'calculate_gains_breakdown', 'calculate_future_returns' ]
-
-
 _user_columns = [
     'block_number',
     'timestamp',
@@ -37,7 +34,7 @@ _baseline_columns = [
 # Helper functions
 #-------------------------------------------------------------------------------
 
-def _get_prices(asset_row, busd_row):
+def get_prices(asset_row, busd_row):
     rune_in_usd = busd_row['balance_asset'] / busd_row['balance_rune']
     asset_in_rune = asset_row['balance_rune'] / asset_row['balance_asset']
     asset_in_usd = asset_in_rune * rune_in_usd
@@ -45,7 +42,7 @@ def _get_prices(asset_row, busd_row):
 
 
 def _get_user_shares(amount_invested, asset_row, busd_row):
-    rune_price, asset_price = _get_prices(asset_row, busd_row)
+    rune_price, asset_price = get_prices(asset_row, busd_row)
     share_price = (asset_row['balance_rune'] * rune_price + asset_row['balance_asset'] * asset_price) / asset_row['pool_units'] / 10e7
     return amount_invested / share_price
 
@@ -87,7 +84,7 @@ def calculate_user_data(amount_invested, time_invested, asset_data, busd_data):
     info('Calculating user data', total_rows=len(asset_data))
     for idx in tqdm(range(len(asset_data)), desc='User data'):
         # Asset prices in USD
-        rune_price, asset_price = _get_prices(asset_data.loc[idx], busd_data.loc[idx])
+        rune_price, asset_price = get_prices(asset_data.loc[idx], busd_data.loc[idx])
 
         # User balance
         rune_balance = user_share * asset_data.loc[idx]['balance_rune'] / asset_data.loc[idx]['pool_units'] / 10e7
@@ -224,27 +221,56 @@ def calculate_gains_breakdown(user_data):
 # Predict future returns
 #-------------------------------------------------------------------------------
 
-def calculate_future_returns(user_data, future_date, use_avg, rune_target, asset_target):
-    # Calculate the fee ROI the last x days
-    if use_avg == '3 days':
-        start_row = user_data.iloc[-3 * 24]  # 1 hr per row, so 3 days is 3 * 24 rows
-    elif use_avg == '7 days':
-        start_row = user_data.iloc[-7 * 24]
-    elif use_avg == '14 days':
-        start_row = user_data.iloc[-14 * 24]
-    elif use_avg == '30 days':
-        start_row = user_data.iloc[-30 * 24]
-    else:
-        raise Exception('Invalid `use_avg` value')
+def calculate_future_returns(user_data, future_date, num_days_for_avg, rune_target, asset_target):
+    start_row = user_data.iloc[-24 * num_days_for_avg]  # 1 hr per row, so x days is x * 24 rows
 
     start_time = start_row['timestamp']
-    start_fees = start_row['fee_accrued']
+    start_fees = start_row['fee_accrual']
     latest_time = user_data.iloc[-1]['timestamp']
-    latest_fees = user_data.iloc[-1]['fee_accrued']
+    latest_fees = user_data.iloc[-1]['fee_accrual']
 
+    # Fee accrual seems to conform to a linear function
     num_days = (latest_time - start_time) / 60 / 60 / 24
-    roi = latest_value / start_value - 1
-    apy = (roi + 1) ** (365 / num_days)
+    fee_accrual_per_day = (latest_fees - start_fees) / num_days
 
-    # Extrapolate fee income to the future date
-    # roi_extrap =
+    # Extrapolate fee income to the future date (linear)
+    future_time = date_to_unix(future_date)
+    num_days = (future_time - latest_time) / 60 / 60 / 24
+    fee_accrual = fee_accrual_per_day * num_days + latest_fees
+
+    # Imperm loss
+    relative_price_init = user_data.loc[0]['asset_price'] / user_data.loc[0]['rune_price']
+    relative_price_now = asset_target / rune_target
+    price_swing = relative_price_now / relative_price_init
+    imperm_loss = 2 * sqrt(price_swing) / (price_swing + 1) - 1
+
+    # Total gains
+    total_gains = fee_accrual + imperm_loss
+
+    # Total value
+    init_rune_balance = user_data.loc[0]['rune_balance']
+    init_asset_balance = user_data.loc[0]['asset_balance']
+    hold_value = init_rune_balance * rune_target + init_asset_balance * asset_target
+    total_value = (1 + total_gains) * hold_value
+
+    # Asset balances
+    rune_balance = total_value / rune_target / 2
+    asset_balance = total_value / asset_target / 2
+
+    pred = {
+        'block_number':  'n/a',
+        'timestamp':     future_time,
+        'rune_price':    rune_target,
+        'asset_price':   asset_target,
+        'rune_balance':  rune_balance,
+        'asset_balance': asset_balance,
+        'rune_value':    total_value / 2,
+        'asset_value':   total_value / 2,
+        'total_value':   total_value,
+        'fee_accrual':   fee_accrual,
+        'imperm_loss':   imperm_loss,
+        'total_gains':   total_gains
+    }
+    info('Predictions calculated', **pred)
+
+    return pred

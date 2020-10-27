@@ -78,7 +78,7 @@ def plot_future_gains_breakdown(fee_accrual, imperm_loss, total_gains):
 
 
 #-------------------------------------------------------------------------------
-# Deprecated: plot using Matplotlib
+# Plot using Matplotlib
 #-------------------------------------------------------------------------------
 
 def plot_gains_breakdown_pyplot(user_data):
@@ -128,23 +128,33 @@ def plot_gains_breakdown_pyplot(breakdown):
         breakdown['imp_loss']['value'],
         breakdown['total']['value']
     ]
+    percentages = [
+        breakdown['rune_movement']['percentage'],
+        breakdown['asset_movement']['percentage'],
+        breakdown['fees']['percentage'],
+        breakdown['imp_loss']['percentage'],
+        breakdown['total']['percentage']
+    ]
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    barlist = plt.bar(range(len(types)), values)
+    barlist = ax.bar(range(len(types)), values)
 
     # Set bar colors - green if positive, red if negative, magenta for total
     for bar, val in zip(barlist[:-1], values[:-1]):
         bar.set_color('g' if val >=0 else 'r')
     barlist[-1].set_color('magenta')
 
+    for bar in barlist:
+        bar.set_edgecolor('black')
+
     # https://stackoverflow.com/questions/28931224/adding-value-labels-on-a-matplotlib-bar-chart
-    for rect, val in zip(ax.patches, values):
+    for rect, val, per in zip(ax.patches, values, percentages):
         y = rect.get_height()
         x = rect.get_x() + rect.get_width() / 2
 
         spacing = 2.5 if val >= 0 else -2.5
         va = 'bottom' if val >=0 else 'top'
-        label = '{}${:,.2f}'.format('+' if val >= 0 else '-', abs(val))
+        label = '{}${:,.2f} ({:.1f}%)'.format('+' if val >= 0 else '-', abs(val), abs(per) * 100)
 
         ax.annotate(
             label,
@@ -158,4 +168,87 @@ def plot_gains_breakdown_pyplot(breakdown):
     plt.ylabel('Value ($)')
     plt.xticks(range(len(types)), types)
     plt.axhline(0, color='black', linewidth=1)  # Horizontal line at y = 0
+    return fig
+
+
+# https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html
+def plot_gains_breakdown_compared_pyplot(current_breakdown, future_breakdown):
+
+    def autolabel(rects, values):
+        for rect, val in zip(rects, values):
+            y = rect.get_height()
+            x = rect.get_x() + rect.get_width() / 2
+
+            spacing = 2.5 if val >= 0 else -2.5
+            va = 'bottom' if val >=0 else 'top'
+            label = '{}${:,.0f}'.format('+' if val >= 0 else '-', abs(val))
+
+            ax.annotate(
+                label,
+                (x, y),
+                xytext=(0, spacing),
+                textcoords='offset points',
+                ha='center',
+                va=va
+            )
+
+    types = [
+        'rune_move',
+        'asset_move',
+        'fee_accrued',
+        'imperm_loss',
+        'total_gains'
+    ]
+    current_values = [
+        current_breakdown['rune_movement']['value'],
+        current_breakdown['asset_movement']['value'],
+        current_breakdown['fees']['value'],
+        current_breakdown['imp_loss']['value'],
+        current_breakdown['total']['value']
+    ]
+    future_values = [
+        future_breakdown['rune_movement']['value'],
+        future_breakdown['asset_movement']['value'],
+        future_breakdown['fees']['value'],
+        future_breakdown['imp_loss']['value'],
+        future_breakdown['total']['value']
+    ]
+
+    width = 0.45
+    ind1 = [ ind - width / 2 for ind in range(len(types)) ]
+    ind2 = [ ind + width / 2 for ind in range(len(types)) ]
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    rects1 = ax.bar(
+        ind1, current_values,
+        width=width,
+        label='Current'
+    )
+    rects2 = ax.bar(
+        ind2, future_values,
+        width=width,
+        label='Predicted'
+    )
+
+    for bar, val in zip(rects1[:-1], current_values[:-1]):
+        bar.set_color((0, 1, 0, .5) if val >=0 else (1, 0, 0, .35))
+        bar.set_edgecolor('black')
+
+    for bar, val in zip(rects2[:-1], future_values[:-1]):
+        bar.set_color('g' if val >=0 else 'r')
+        bar.set_edgecolor('black')
+
+    rects1[-1].set_color((1, 0, 1, .5))
+    rects1[-1].set_edgecolor('black')
+    rects2[-1].set_color('magenta')
+    rects2[-1].set_edgecolor('black')
+
+    autolabel(rects1, current_values)
+    autolabel(rects2, future_values)
+
+    plt.ylabel('Value ($)')
+    plt.xticks(range(len(types)), types)
+    plt.axhline(0, color='black', linewidth=1)
+    plt.legend()
+
     return fig

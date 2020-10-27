@@ -5,17 +5,6 @@ from termcolor import colored
 from time import sleep
 
 
-__all__ = (
-    'utc_to_unix',
-    'info',
-    'warn',
-    'error',
-    'api_url',
-    'random_sleep',
-    'save_data_and_exit'
-)
-
-
 _red = lambda msg: colored(msg, 'red')
 _yellow = lambda msg: colored(msg, 'yellow')
 _green = lambda msg: colored(msg, 'green')
@@ -33,6 +22,7 @@ _columns = [
 
 
 utc_to_unix = lambda utc_time: int(datetime.strptime(utc_time[:19], '%Y-%m-%dT%H:%M:%S').timestamp())
+date_to_unix = lambda date: int(datetime.combine(date, datetime.min.time()).timestamp())
 
 
 def _join_kwargs(kwargs):
