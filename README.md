@@ -30,11 +30,12 @@ streamlit run app.py
 
 ## Deploy to Heroku
 
-Install Heroku CLI tool:
+Install Heroku CLI tool & login:
 
 ```bash
 brew tap heroku/brew && brew install heroku  # masOS
 sudo snap install --classic heroku  # Ubuntu
+heroku login
 ```
 
 Create a new project on Heroku website, then
