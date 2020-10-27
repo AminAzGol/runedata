@@ -25,7 +25,7 @@ st.markdown(
                 max-width: 400px;
             }}
             .image-container {{
-                max-width: 600px;
+                max-width: 700px;
             }}
             img {{
                 max-width: 100%
@@ -288,7 +288,8 @@ if view_btn:
 
     # For this one, pyplot actually looks better than altair
     # st.altair_chart(src.plot_gains_breakdown(breakdown), use_container_width=True)
-    st.pyplot(src.plot_gains_breakdown_pyplot(breakdown))
+    # st.pyplot(src.plot_gains_breakdown(breakdown))
+    st.pyplot(src.plot_gains_breakdown_waterfall(breakdown))  # update: use waterfall instead of simple bar graph
 
     # Let user download their data as a CSV which can be imported to Skittles
     # https://twitter.com/mehowbrains/status/1317291144640974849
@@ -310,7 +311,7 @@ if predict_btn:
 
     pred_organized = [
         {
-            'Strategy': 'Keep prividing liquidity',
+            'Strategy': 'Keep providing liquidity',
             'Value ($)': pred['total_value']
         },
         {
@@ -349,4 +350,5 @@ if predict_btn:
     st.markdown('If you decide to keep providing liquidity, this is how your gains & loss would be like compared to the current values:')
 
     st.text('')
-    st.pyplot(src.plot_gains_breakdown_compared_pyplot(current_breakdown, future_breakdown))
+    # st.pyplot(src.plot_gains_breakdown_compared(current_breakdown, future_breakdown))
+    st.pyplot(src.plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown))  # update: use waterfall instead of simple bar graph
