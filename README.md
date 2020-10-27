@@ -12,13 +12,14 @@ Pulls THORChain liquidity provider data from a community-maintained API
 * [termcolor](https://pypi.org/project/termcolor/)
 * tqdm
 
-Create an Anaconda environment using the YAML file provided:
+Create an Anaconda environment:
 
 ```
-conda env create -n streamlit -f environment.yaml
+conda env create -n streamlit python
+pip install -r requirements.txt
 ```
 
-## How to use
+## Run locally
 
 Edit the configurations in `fetch_data.py`, then
 
@@ -26,3 +27,7 @@ Edit the configurations in `fetch_data.py`, then
 conda activate streamlit
 streamlit run app.py
 ```
+
+## Deploy to Heroku
+
+Reference: [Deploying your Streamlit dashboard with Heroku](https://gilberttanner.com/blog/deploying-your-streamlit-dashboard-with-heroku) by Gilbert Tanner
