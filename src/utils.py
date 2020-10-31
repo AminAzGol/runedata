@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 import pandas as pd
 import random
 from termcolor import colored
@@ -81,3 +82,32 @@ def save_data_and_exit(dfs, data_dir):
         _save_data(df, '{}/pool_{}.csv'.format(data_dir, asset))
     info('Exitting...')
     exit()
+
+
+def get_pool_yields(list_assets, data_dir):
+    pass
+
+
+def get_asset_prices(list_assets, data_dir):
+    prices = []
+
+    for asset in list_assets:
+        data = pd.read_csv(os.path.join(data_dir, 'pool_{}.{}.csv').format(asset['chain'], asset['symbol']))
+        rune_price, asset_price = src.get_prices(data.iloc[-1], BUSD_DATA.iloc[-1])
+
+        if len(prices) == 0:
+            prices.append({
+                'Chain': 'BNB',
+                'Symbol': 'RUNE-B1A',
+                'Name': 'Rune',
+                'Price ($)': rune_price
+            })
+
+        prices.append({
+            'Chain': asset['chain'],
+            'Symbol': asset['symbol'],
+            'Name': asset['name'],
+            'Price ($)': asset_price
+        })
+
+    return pd.DataFrame(prices, columns=['Chain', 'Symbol', 'Name', 'Price ($)'])

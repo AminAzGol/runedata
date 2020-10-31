@@ -11,6 +11,14 @@ import src
 DATA_DIR = os.path.abspath('./data')
 BUSD_DATA = pd.read_csv(os.path.join(DATA_DIR, 'pool_BNB.BUSD-BD1.csv'))
 
+# Fetch data if the latest data point is more than an hour old
+timedelta = datetime.utcnow().timestamp() - BUSD_DATA.iloc[-1]['timestamp']
+if timedelta > 3600:
+    src.warn('Pool data is more than an hour old. Fetching new data...', timedelta=int(timedelta))
+    src.fetch_data(DATA_DIR)
+else:
+    src.info('Pool data is up to date', timedelta=int(timedelta))
+
 
 # Increace width of the main page container
 # reduce size of tables and matplotlib graphics
@@ -43,39 +51,74 @@ st.markdown(
 faq = [
     st.markdown('![banner](https://github.com/Larrypcdotcom/thorchain-lp-data/raw/main/images/banner.png)'),
 
-    st.title('Frequently Asked Questions'),
+    st.title('FAQ'),
 
     st.header('Q. What does this tool do?'),
 
     st.markdown('''This tool provides three key functions:
 
-1. Present yield / return data of a few selected liquidity pools
-
-2. Take a hypothetic investment input by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
+1. Take a hypothetic investment provided by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
 have played out based on on-chain data.
 
-3. Let user input target prices of RUNE and selected asset, and predict investment performance at a future data by extrapolating
-historical yields.
+2. Let user select price targets of RUNE and assets, and predict investment performance at a future data by extrapolating historical yields.
 
-For functions 2 and 3, also provide detailed breakdowns of gains / losses.'''),
+3. Present & visualize historical yield data of a few selected liquidity pools.
 
-    st.header('Q. How to use this tool?'),
+For (2) and (3), also provide detailed breakdowns of gains / losses.'''),
 
-    st.markdown('''To see yield data, simply hit the button on top of the left panel.
+    st.header('Q. How to use?'),
 
-To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
+    st.markdown('''* To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
 
-To predict future returns, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
-of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
+* To predict future returns, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
+of your pool into your selected date, and substract impermanent loss based on your target asset prices.
+
+* To see yield data, simply hit the button on top of the left panel.'''),
+
+    st.header('Q. How to I understand the yield / ROI / APY presented here?'),
+
+    st.markdown('''Your yield consists of three parts:
+
+1. **LP rewards**. RUNE tokens are injected into each pool  based on [a predefined schedule](https://docs.thorchain.org/how-it-works/emission-schedule).
+This serves as an incentives for users to take risk and provide, similar to "yield farming" in Ethereum DeFi. At this time, this constitutes the majority
+of the yield.
+
+2. **Transaction fees**.
+
+3. **Impermanent loss (IL)**. This is the result of the swings of the relative prices of pooled assets and is always negative.
+
+The yield values provided here only includes (1) LP rewards and (2) tx fees. This is because these are rather predictable and easy to extrapolate to future times.
+(3) IL, on the other hand, is unpreditable and highly volatile. Knowing historical IL provides no help in predicting future IL. Therefore it is excluded form yield
+values.
+
+To predict future returns, the user needs to provide his/her own price targets.'''),
 
     st.header('Q. Where can I learn more about THORChain?'),
 
-    st.markdown('The best place to start is to start is the [official Telegram group]().'),
+    st.markdown('''The best place to start is to start is the [official Telegram group](). Feel free to join and ask questions.
+
+Other resources:
+
+* The [Technology](https://docs.thorchain.org/technology) section of the documentation is helpful for those who wish to understand how THORChain works
+under the hood.
+
+* [Chris Blec](https://twitter.com/ChrisBlec)'s [an interview](https://www.youtube.com/watch?v=ip7OHz1Gnec) with JP from the core team
+
+* [Delphi Digital](https://twitter.com/Delphi_Digital)'s [podcast](https://www.delphidigital.io/reports/exclusive-podcast-with-thorchains-technical-lead-chad-barraford/) with Chad from the core team
+
+* Two execellent articles ([1](https://pintail.medium.com/uniswap-a-good-deal-for-liquidity-providers-104c0b6816f2),
+[2](https://pintail.medium.com/understanding-uniswap-returns-cc593f3499ef)) explaining the risks and returns of providing liquidity on Uniswap.
+Since THORChain uses the same constant-product rule as Uniswap, these discussions also applies here.
+'''),
 
     st.header('Q. Who built this? Can I access the source code?'),
 
     st.markdown('''Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom).
 The code is [available on GitHub](https://github.com/Larrypcdotcom/thorchain-lp-data) under MIT license.'''),
+
+    st.header('Q. Can you add support for \[...\] pool?'),
+
+    st.markdown('''Sure. To make a request, create an issue on GitHub or simply DM me on Twitter.'''),
 
     st.header('Q. How can I contribute?'),
 
@@ -88,7 +131,6 @@ For bug reports and feature requests, please [create an issue](https://github.co
 
 
 def _clear_faq():
-    print('faq', faq)
     for widget in faq:
         widget.empty()
 
@@ -99,7 +141,7 @@ def _clear_faq():
 
 st.sidebar.header('Yield Data')
 
-yield_btn = st.sidebar.button('Click me to view past pool yields')
+yield_btn = st.sidebar.button('View past pool yields')
 
 st.sidebar.header('Simulate Past Performance')
 
