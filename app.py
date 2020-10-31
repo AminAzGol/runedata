@@ -28,7 +28,7 @@ st.markdown(
                 max-width: 700px;
             }}
             img {{
-                max-width: 100%
+                max-width: 100%;
             }}
         </style>
     ''',
@@ -40,48 +40,50 @@ st.markdown(
 # Default page content - FAQs
 #-------------------------------------------------------------------------------
 
-prices = []
-for asset in src.assets:
-    data = pd.read_csv(os.path.join(DATA_DIR, 'pool_{}.{}.csv').format(asset['chain'], asset['symbol']))
-    rune_price, asset_price = src.get_prices(data.iloc[-1], BUSD_DATA.iloc[-1])
-
-    if len(prices) == 0:
-        prices.append({
-            'Chain': 'BNB',
-            'Symbol': 'RUNE-B1A',
-            'Name': 'Rune',
-            'Price ($)': rune_price
-        })
-
-    prices.append({
-        'Chain': asset['chain'],
-        'Symbol': asset['symbol'],
-        'Name': asset['name'],
-        'Price ($)': asset_price
-    })
-
-prices = pd.DataFrame(prices, columns=['Chain', 'Symbol', 'Name', 'Price ($)'])
-
-
 faq = [
-    st.markdown('![header-image](https://via.placeholder.com/1000x200.png?text=header+image+here+1000x200)'),
-    st.title('This tool helps you evaluate historical performance of your [THORChain](https://thorchain.org/) liquidity pools and predict their future returns.'),
-    st.text(''),
-    st.markdown('''To view the past performance of your LP, fill out the first section of the left panel, then hit "View".
+    st.markdown('![banner](https://github.com/Larrypcdotcom/thorchain-lp-data/raw/main/images/banner.png)'),
 
-To predict the returns of your LP in the future, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
+    st.title('Frequently Asked Questions'),
+
+    st.header('Q. What does this tool do?'),
+
+    st.markdown('''This tool provides three key functions:
+
+1. Present yield / return data of a few selected liquidity pools
+
+2. Take a hypothetic investment input by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
+have played out based on on-chain data.
+
+3. Let user input target prices of RUNE and selected asset, and predict investment performance at a future data by extrapolating
+historical yields.
+
+For functions 2 and 3, also provide detailed breakdowns of gains / losses.'''),
+
+    st.header('Q. How to use this tool?'),
+
+    st.markdown('''To see yield data, simply hit the button on top of the left panel.
+
+To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
+
+To predict future returns, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
 of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
-    st.header('Current Asset Prices'),
-    st.text(''),
-    st.dataframe(prices),
-    st.header('About'),
-    st.text(''),
-    st.markdown('''Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom)
 
-[Code available](https://github.com/Larrypcdotcom/thorchain-lp-data) under MIT license.
+    st.header('Q. Where can I learn more about THORChain?'),
+
+    st.markdown('The best place to start is to start is the [official Telegram group]().'),
+
+    st.header('Q. Who built this? Can I access the source code?'),
+
+    st.markdown('''Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom).
+The code is [available on GitHub](https://github.com/Larrypcdotcom/thorchain-lp-data) under MIT license.'''),
+
+    st.header('Q. How can I contribute?'),
+
+    st.markdown('''Join the **THORChain Apps Dev Team** [Zulip server](). We are a community group committed to
+creating tools like this to assist THORChain users. (Note: we are not associated with the THORChain core team.)
+
 For bug reports and feature requests, please [create an issue](https://github.com/Larrypcdotcom/thorchain-lp-data/issues/new) on GitHub.
-
-Interested in contributing? Join the **THORChain Community Apps Team** [Discord channel]().''')
+''')
 ]
 
 
@@ -95,7 +97,11 @@ def _clear_faq():
 # Sidebar
 #-------------------------------------------------------------------------------
 
-st.sidebar.header('View Past Performance')
+st.sidebar.header('Yield Data')
+
+yield_btn = st.sidebar.button('Click me to view past pool yields')
+
+st.sidebar.header('Simulate Past Performance')
 
 investment = {
     'asset': st.sidebar.selectbox(
@@ -116,7 +122,7 @@ investment = {
     )
 }
 
-view_btn = st.sidebar.button('View', key='view_btn')
+view_btn = st.sidebar.button('Simulate', key='view_btn')
 
 st.sidebar.header('Predict Future Returns')
 
