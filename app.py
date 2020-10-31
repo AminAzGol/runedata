@@ -8,6 +8,10 @@ import time
 import src
 
 
+#-------------------------------------------------------------------------------
+# Check pool data; fetch new if out of date
+#-------------------------------------------------------------------------------
+
 DATA_DIR = os.path.abspath('./data')
 BUSD_DATA = pd.read_csv(os.path.join(DATA_DIR, 'pool_BNB.BUSD-BD1.csv'))
 
@@ -19,6 +23,16 @@ if timedelta > 3600:
 else:
     src.info('Pool data is up to date', timedelta=int(timedelta))
 
+
+#-------------------------------------------------------------------------------
+# Page configs
+#-------------------------------------------------------------------------------
+
+# Must be the first Streamlit command used in your app
+st.beta_set_page_config(
+    page_title='THORChain Simulate',
+    page_icon='images/favicon.png'
+)
 
 # Increace width of the main page container
 # reduce size of tables and matplotlib graphics
@@ -45,7 +59,7 @@ st.markdown(
 
 
 #-------------------------------------------------------------------------------
-# Default page content - FAQs
+# FAQs
 #-------------------------------------------------------------------------------
 
 faq = [
@@ -55,25 +69,19 @@ faq = [
 
     st.header('Q. What does this tool do?'),
 
-    st.markdown('''This tool provides three key functions:
+    st.markdown('''This tool provides two key functions:
 
-1. Take a hypothetic investment provided by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
+* Take a hypothetic investment provided by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
 have played out based on on-chain data.
 
-2. Let user select price targets of RUNE and assets, and predict investment performance at a future data by extrapolating historical yields.
-
-3. Present & visualize historical yield data of a few selected liquidity pools.
-
-For (2) and (3), also provide detailed breakdowns of gains / losses.'''),
+* Let user select price targets of RUNE and assets, and predict investment performance at a future data by extrapolating historical yields.'''),
 
     st.header('Q. How to use?'),
 
     st.markdown('''* To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
 
 * To predict future returns, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
-of your pool into your selected date, and substract impermanent loss based on your target asset prices.
-
-* To see yield data, simply hit the button on top of the left panel.'''),
+of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
 
     st.header('Q. How to I understand the yield / ROI / APY presented here?'),
 
@@ -138,10 +146,6 @@ def _clear_faq():
 #-------------------------------------------------------------------------------
 # Sidebar
 #-------------------------------------------------------------------------------
-
-st.sidebar.header('Yield Data')
-
-yield_btn = st.sidebar.button('View past pool yields')
 
 st.sidebar.header('Simulate Past Performance')
 
