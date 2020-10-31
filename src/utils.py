@@ -62,7 +62,7 @@ def random_sleep(max_seconds):
     sleep(sleep_time)
 
 
-def _save_data(df, filename):
+def _save(df, filename):
     if not isinstance(df, pd.DataFrame):
         try:
             df = pd.DataFrame(df, columns=_columns)
@@ -77,11 +77,9 @@ def _save_data(df, filename):
         warn('Skipped empty DataFrame', filename=filename.split('/')[-1])
 
 
-def save_data_and_exit(dfs, data_dir):
+def save_data(dfs, data_dir):
     for asset, df in dfs.items():
-        _save_data(df, '{}/pool_{}.csv'.format(data_dir, asset))
-    info('Exitting...')
-    exit()
+        _save(df, '{}/pool_{}.csv'.format(data_dir, asset))
 
 
 def get_pool_yields(list_assets, data_dir):

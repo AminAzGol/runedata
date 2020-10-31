@@ -56,12 +56,14 @@ def _fetch_block_data(asset, block_number):
         info('Fetched data from API', asset=asset, block_number=block_number)
         return data
 
+    elif _does_not_exist(data):
+        warn('Pool does not exists or block has not been mined yet', asset=asset, block_number=block_number)
+        return 'uptodate'
+
     elif _enabled_but_zero_balance(data):
         warn('Pool has zero balance', asset=asset, block_number=block_number)
     elif _exists_but_not_enabled(data):
         warn('Pool is not enabled', asset=asset, block_number=block_number)
-    elif _does_not_exist(data):
-        warn('Pool does not exists or block has not been mined yet', asset=asset, block_number=block_number)
     else:
         error('Unknown error when fetching data')
 
@@ -88,15 +90,18 @@ def fetch_data(DATA_DIR):
                     if data == 'kbinterrupt':
                         raise KeyboardInterrupt
 
+                    elif data == 'uptodate':
+                        return
+
                     elif data != None:
                         dfs[asset].append(data)
                         info('Appended data', **data)
 
-                    # Update: save to file every time a new data point is fetched
-                    save_data_and_exit(dfs, DATA_DIR)
-
                     # Sleep a random time so that the server doesn't block me
                     random_sleep(MAX_SLEEP_TIME)
+
+            # Update: save to file every time a new data point is fetched
+            save_data(dfs, DATA_DIR)
 
     except KeyboardInterrupt:
         warn('User interruption! Saving data...')
