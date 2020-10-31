@@ -165,9 +165,19 @@ def _add_bar_labels(ax, rects, values):
         )
 
 
-def _set_ylims(ax):
-    bottoms = [ rect.get_y() for rect in ax.patches ]
+def _set_ylims(ax, chart_type):
+    assert chart_type in ['waterfall', 'bar']
+    if chart_type == 'waterfall':
+        bottoms = [ rect.get_y() for rect in ax.patches ]
+    if chart_type == 'bar':
+        bottoms = [ rect.get_y() + rect.get_height() for rect in ax.patches ]
+
     tops = [ rect.get_y() + rect.get_height() for rect in ax.patches ]
+
+    # add 0 to lists to account for situations where all bars are above / below the y = 0 line
+    bottoms.append(0)
+    tops.append(0)
+
     diff = max(tops) - min(bottoms)
     y_min = min(bottoms) - 0.1 * diff
     y_max = max(tops) + 0.1 * diff
@@ -198,7 +208,7 @@ def plot_gains_breakdown_waterfall(breakdown):
     ax.plot(step.index, step.values, 'k', linewidth=1)
 
     _set_bar_colors(barlist, values)
-    _set_ylims(ax)
+    _set_ylims(ax, 'waterfall')
     _add_bar_labels(ax, barlist, values)
 
     plt.ylabel('Value ($)')
@@ -215,7 +225,7 @@ def plot_gains_breakdown(breakdown):
     barlist = ax.bar(types, values)
 
     _set_bar_colors(barlist, values)
-    # _set_ylims(ax)  # _set_ylims only works for waterfall charts
+    _set_ylims(ax, 'bar')
     _add_bar_labels(ax, barlist, values)
 
     plt.ylabel('Value ($)')
@@ -268,7 +278,7 @@ def plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown)
 
     _set_bar_colors(barlist[:5], values[:5], alpha=0.25)
     _set_bar_colors(barlist[5:], values[5:])
-    _set_ylims(ax)
+    _set_ylims(ax, 'waterfall')
     _add_bar_labels(ax, barlist, values)
 
     plt.ylabel('Value ($)')
@@ -302,6 +312,8 @@ def plot_gains_breakdown_compared(current_breakdown, future_breakdown):
 
     _set_bar_colors(rects1, current_values, alpha=.5)
     _set_bar_colors(rects2, future_values)
+
+    _set_ylims(ax, 'bar')
 
     _add_bar_labels(ax, rects1, current_values)
     _add_bar_labels(ax, rects2, future_values)
