@@ -62,85 +62,8 @@ st.markdown(
 # FAQs
 #-------------------------------------------------------------------------------
 
-faq = [
-    st.markdown('![banner](https://github.com/Larrypcdotcom/thorchain-lp-data/raw/main/images/banner.png)'),
-
-    st.title('FAQ'),
-
-    st.header('Q. What does this tool do?'),
-
-    st.markdown('''This tool provides two key functions:
-
-* Take a hypothetic investment provided by user (e.g. invest x dollars on y day in z pool) and simulate how this investment would
-have played out based on on-chain data.
-
-* Let user select price targets of RUNE and assets, and predict investment performance at a future data by extrapolating historical yields.'''),
-
-    st.header('Q. How to use?'),
-
-    st.markdown('''* To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
-
-* To predict future returns, fill out **both** sections, and hit "Predict". The algorithm will extrapolate the ROI
-of your pool into your selected date, and substract impermanent loss based on your target asset prices.'''),
-
-    st.header('Q. How to I understand the yield / ROI / APY presented here?'),
-
-    st.markdown('''Your yield consists of three parts:
-
-1. **LP rewards**. RUNE tokens are injected into each pool  based on [a predefined schedule](https://docs.thorchain.org/how-it-works/emission-schedule).
-This serves as an incentives for users to take risk and provide, similar to "yield farming" in Ethereum DeFi. At this time, this constitutes the majority
-of the yield.
-
-2. **Transaction fees**.
-
-3. **Impermanent loss (IL)**. This is the result of the swings of the relative prices of pooled assets and is always negative.
-
-The yield values provided here only includes (1) LP rewards and (2) tx fees. This is because these are rather predictable and easy to extrapolate to future times.
-(3) IL, on the other hand, is unpreditable and highly volatile. Knowing historical IL provides no help in predicting future IL. Therefore it is excluded form yield
-values.
-
-To predict future returns, the user needs to provide his/her own price targets.'''),
-
-    st.header('Q. Where can I learn more about THORChain?'),
-
-    st.markdown('''The best place to start is to start is the [official Telegram group](). Feel free to join and ask questions.
-
-Other resources:
-
-* The [Technology](https://docs.thorchain.org/technology) section of the documentation is helpful for those who wish to understand how THORChain works
-under the hood.
-
-* [Chris Blec](https://twitter.com/ChrisBlec)'s [an interview](https://www.youtube.com/watch?v=ip7OHz1Gnec) with JP from the core team
-
-* [Delphi Digital](https://twitter.com/Delphi_Digital)'s [podcast](https://www.delphidigital.io/reports/exclusive-podcast-with-thorchains-technical-lead-chad-barraford/) with Chad from the core team
-
-* Two execellent articles ([1](https://pintail.medium.com/uniswap-a-good-deal-for-liquidity-providers-104c0b6816f2),
-[2](https://pintail.medium.com/understanding-uniswap-returns-cc593f3499ef)) explaining the risks and returns of providing liquidity on Uniswap.
-Since THORChain uses the same constant-product rule as Uniswap, these discussions also applies here.
-'''),
-
-    st.header('Q. Who built this? Can I access the source code?'),
-
-    st.markdown('''Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom).
-The code is [available on GitHub](https://github.com/Larrypcdotcom/thorchain-lp-data) under MIT license.'''),
-
-    st.header('Q. Can you add support for \[...\] pool?'),
-
-    st.markdown('''Sure. To make a request, create an issue on GitHub or simply DM me on Twitter.'''),
-
-    st.header('Q. How can I contribute?'),
-
-    st.markdown('''Join the **THORChain Apps Dev Team** [Zulip server](). We are a community group committed to
-creating tools like this to assist THORChain users. (Note: we are not associated with the THORChain core team.)
-
-For bug reports and feature requests, please [create an issue](https://github.com/Larrypcdotcom/thorchain-lp-data/issues/new) on GitHub.
-''')
-]
-
-
-def _clear_faq():
-    for widget in faq:
-        widget.empty()
+with open('./FAQ.md', 'r') as f:
+    faq = st.markdown(f.read())
 
 
 #-------------------------------------------------------------------------------
@@ -210,14 +133,6 @@ st.sidebar.info('Based on data last updated at **{}**'.format(
 # Helper functions
 #-------------------------------------------------------------------------------
 
-
-# https://discuss.streamlit.io/t/how-to-download-file-in-streamlit/1806/2
-def _get_table_download_link(df):
-    csv = df.to_csv(index=False)
-    b64 = base64.b64encode(csv.encode()).decode()
-    return f'<a class="streamlit-button small-button primary-button" href="data:file/csv;base64,{b64}">Download data as CSV</a>'
-
-
 def _out_or_under(value, baseline):
     return 'outperforms' if value >= baseline else 'underperforms'
 
@@ -247,7 +162,7 @@ def _get_percent_change(value, baseline, show_sign=True):
 #-------------------------------------------------------------------------------
 
 if view_btn:
-    _clear_faq()
+    faq.empty()
 
     user_data = src.calculate_user_data(
         amount_invested=investment['amount'],
@@ -261,7 +176,6 @@ if view_btn:
     breakdown = src.calculate_gains_breakdown(user_data)
 
     st.title('Value of Investment')
-    st.text('')  # add some vertical space
 
     st.markdown('The current value of your investment is **${:,.2f}** (**{}**)'.format(
         user_data.iloc[-1]['total_value'],
@@ -285,7 +199,6 @@ if view_btn:
     st.altair_chart(src.plot_value_of_investment(user_data, baselines), use_container_width=True)
 
     st.title('Pool Rewards')
-    st.text('')
 
     st.markdown('''Compared to holding 50:50 **RUNE** & **{}** passively, you gained **{}** from fees & rewards accrued,
     and lost **{}** due to [impermanent loss (IL)](https://pintail.medium.com/understanding-uniswap-returns-cc593f3499ef).
@@ -309,7 +222,6 @@ if view_btn:
     st.altair_chart(src.plot_pool_rewards(user_data), use_container_width=True)
 
     st.title('Gains/Losses Breakdown')
-    st.text('')
 
     st.markdown('''You {} **${:,.2f}** (**{}**) due to **RUNE** price going {}, and {} **${:,.2f}** (**{}**) due to **{}** price going {}.'''.format(
         'gained' if breakdown['rune_movement']['value'] >= 0 else 'lost',
@@ -336,24 +248,15 @@ if view_btn:
         _get_percent_change(breakdown['total']['percentage'], 0.)
     ), unsafe_allow_html=True)
 
-    st.text('')
-
-    # For this one, pyplot actually looks better than altair
-    # st.altair_chart(src.plot_gains_breakdown(breakdown), use_container_width=True)
-
     st.subheader('Bar chart')
     st.pyplot(src.plot_gains_breakdown(breakdown))
-    st.subheader('Waterfall chart')
-    st.pyplot(src.plot_gains_breakdown_waterfall(breakdown))  # update: use waterfall instead of simple bar graph
 
-    # Let user download their data as a CSV which can be imported to Skittles
-    # https://twitter.com/mehowbrains/status/1317291144640974849
-    # Doesn't work very well yet!!!
-    # st.markdown(_get_table_download_link(user_data), unsafe_allow_html=True)
+    st.subheader('Waterfall chart')
+    st.pyplot(src.plot_gains_breakdown_waterfall(breakdown))
 
 
 if predict_btn:
-    _clear_faq()
+    faq.empty()
 
     user_data = src.calculate_user_data(
         amount_invested=investment['amount'],
@@ -383,30 +286,24 @@ if predict_btn:
     pred_organized.set_index('Strategy', inplace=True)
 
     current_breakdown = src.calculate_gains_breakdown(user_data)
-    future_breakdown = src.calculate_gains_breakdown(pd.DataFrame([
-        user_data.to_dict(orient='records')[0],
-        pred
-    ]))
+    future_breakdown = src.calculate_gains_breakdown(pd.DataFrame([ user_data.to_dict(orient='records')[0], pred ]))
 
     st.title('Value of Investment')
-    st.text('')
 
     st.markdown('''Based on the current value of **${:,.2f}**, your investment as of **{}** will
     worth the following, if you adopt the respective strategy form now on:'''.format(
         user_data.iloc[-1]['total_value'], pred_params['future_date'].strftime('%m/%d/%Y')
     ))
 
-    st.text('')
+    # st.text('')
     st.table(pred_organized)
 
     st.title('Gains/Losses Breakdown')
-    st.text('')
 
     st.markdown('If you decide to keep providing liquidity, this is how your gains & loss would be like compared to the current values:')
 
-    st.text('')
     st.subheader('Bar chart')
     st.pyplot(src.plot_gains_breakdown_compared(current_breakdown, future_breakdown))
 
     st.subheader('Waterfall chart')
-    st.pyplot(src.plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown))  # update: use waterfall instead of simple bar graph
+    st.pyplot(src.plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown))
