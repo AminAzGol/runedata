@@ -1,7 +1,6 @@
 import json
 import os
 import pandas as pd
-# from urllib.request import urlopen
 import requests
 
 from .asset_list import assets as ASSETS
@@ -19,14 +18,14 @@ LAST_BLOCK     = 9999999
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 1
 LIST_ASSETS    = [ '{}.{}'.format(asset['chain'], asset['symbol']) for asset in ASSETS ]
-FIRST_BLOCK    = { asset: 65000 for asset in LIST_ASSETS }  # The first pool was created shortly after block 65000 so it's a good place to start
+FIRST_BLOCK    = { asset: 157500 for asset in LIST_ASSETS }  # Starting around the earliest block where BUSD pool existed
 
 
 #-------------------------------------------------------------------------------
 # Function for fetching data from server
 #-------------------------------------------------------------------------------
 
-def _fetch_block_data(asset, block_number):
+def _fetch_block_data(asset, block_number, log_file=None):
 
     _enabled_and_nonzero_balance = lambda data: ('status' in data) and (data['status'] == 'Enabled') and (int(data['balance_rune']) > 0)
     _enabled_but_zero_balance = lambda data: ('status' in data) and (data['status'] == 'Enabled') and (int(data['balance_rune']) == 0)
@@ -41,10 +40,10 @@ def _fetch_block_data(asset, block_number):
             data = requests.get(api_url(asset, block_number)).json()
             break
         except KeyboardInterrupt:
-            warn('User interruption while fetching data! Returning exit signal')
+            warn('User interruption while fetching data! Returning exit signal', log_file)
             return 'kbinterrupt'
         except Exception:
-            error('Failed to fetch data from API. Retrying...', asset=asset, block_number=block_number, tries=tries)
+            error('Failed to fetch data from API. Retrying...', log_file, asset=asset, block_number=block_number, tries=tries)
 
     if _enabled_and_nonzero_balance(data):
         data['block_number'] = data['height']          # change key `height` to `block_number` because I like it
@@ -53,49 +52,54 @@ def _fetch_block_data(asset, block_number):
         data.pop('height')
         data.pop('asset')
         data.pop('status')
-        info('Fetched data from API', asset=asset, block_number=block_number)
+        info('Fetched data from API', log_file, asset=asset, block_number=block_number)
         return data
 
     elif _does_not_exist(data):
-        warn('Pool does not exists or block has not been mined yet', asset=asset, block_number=block_number)
-        return 'uptodate'
+        warn('Pool does not exist or block has not been mined yet', log_file, asset=asset, block_number=block_number)
+        return 'doesnotexist'
 
     elif _enabled_but_zero_balance(data):
-        warn('Pool has zero balance', asset=asset, block_number=block_number)
+        warn('Pool has zero balance', log_file, asset=asset, block_number=block_number)
     elif _exists_but_not_enabled(data):
-        warn('Pool is not enabled', asset=asset, block_number=block_number)
+        warn('Pool is not enabled', log_file, asset=asset, block_number=block_number)
     else:
-        error('Unknown error when fetching data')
+        error('Unknown error when fetching data', log_file)
 
     return None
 
 
-def fetch_data(DATA_DIR):
+def fetch_data(DATA_DIR, LOG_FILE):
     dfs = {}
     for asset in LIST_ASSETS:
         try:
             dfs[asset] = pd.read_csv('{}/pool_{}.csv'.format(DATA_DIR, asset)).to_dict(orient='records')
             FIRST_BLOCK[asset] = dfs[asset][-1]['block_number'] + STEP
-            info('Loaded existing CSV', asset=asset, first_block=FIRST_BLOCK[asset])
+            info('Loaded existing CSV', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
         except:
             dfs[asset] = []
-            info('Local CSV not found. Starting new...', asset=asset, first_block=FIRST_BLOCK[asset])
+            info('Local CSV not found. Starting new...', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
 
     try:
         for block_number in range(min(FIRST_BLOCK.values()), LAST_BLOCK + 1, STEP):
             for asset in LIST_ASSETS:
                 if block_number >= FIRST_BLOCK[asset]:
-                    data = _fetch_block_data(asset, block_number)
+                    data = _fetch_block_data(asset, block_number, LOG_FILE)
 
                     if data == 'kbinterrupt':
                         raise KeyboardInterrupt
 
-                    elif data == 'uptodate':
+                    # Data is up to date
+                    elif data == 'doesnotexist' and len(dfs[asset]) > 0:
                         return
+
+                    # Pool does not exist
+                    elif data == 'doesnotexist' and len(dfs[asset]) == 0:
+                        pass
 
                     elif data != None:
                         dfs[asset].append(data)
-                        info('Appended data', **data)
+                        info('Appended data', LOG_FILE, **data)
 
                     # Sleep a random time so that the server doesn't block me
                     random_sleep(MAX_SLEEP_TIME)
@@ -104,9 +108,9 @@ def fetch_data(DATA_DIR):
             save_data(dfs, DATA_DIR)
 
     except KeyboardInterrupt:
-        warn('User interruption! Saving data...')
+        warn('User interruption! Saving data...', LOG_FILE)
 
     except Exception:
-        error('Error! Saving data...')
+        error('Error! Saving data...', LOG_FILE)
 
     info('Done!')

@@ -26,29 +26,43 @@ utc_to_unix = lambda utc_time: int(datetime.strptime(utc_time[:19], '%Y-%m-%dT%H
 date_to_unix = lambda date: int(datetime.combine(date, datetime.min.time()).timestamp())
 
 
-def _join_kwargs(kwargs):
-    return ' '.join([ '{}={}'.format(_blue(key), kwargs[key]) for key in sorted(kwargs.keys()) ])
-
-
-def info(msg, **kwargs):
-    if len(kwargs) > 0:
-        print(_currenttime(), _green('INFO'), msg, _join_kwargs(kwargs))
+def _join_kwargs(kwargs, colored=True):
+    if colored:
+        color = _blue
     else:
-        print(_currenttime(), _green('INFO'), msg)
+        color = lambda x: x
 
-
-def warn(msg, **kwargs):
     if len(kwargs) > 0:
-        print(_currenttime(), _yellow('WARN'), msg, _join_kwargs(kwargs))
+        return ' '.join([ '{}={}'.format(color(key), kwargs[key]) for key in sorted(kwargs.keys()) ])
     else:
-        print(_currenttime(), _yellow('WARN'), msg)
+        return ''
 
 
-def error(msg, **kwargs):
-    if len(kwargs) > 0:
-        print(_currenttime(), _red('ERROR'), msg, _join_kwargs(kwargs))
-    else:
-        print(_currenttime(), _red('ERROR'), msg)
+def _append_to_file(filename, msg):
+    if filename is not None:
+        with open(filename, 'a') as f:
+            f.write(msg + '\n')
+
+
+def info(msg, log_file=None, **kwargs):
+    log = _currenttime() + ' ' + 'INFO' + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=False)
+    _append_to_file(log_file, log)
+    log = _currenttime() + ' ' + _green('INFO') + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=True)
+    print(log)
+
+
+def warn(msg, log_file=None, **kwargs):
+    log = _currenttime() + ' ' + 'WARN' + ' ' +  msg + ' ' + _join_kwargs(kwargs, colored=False)
+    _append_to_file(log_file, log)
+    log = _currenttime() + ' ' + _yellow('WARN') + ' ' +  msg + ' ' + _join_kwargs(kwargs, colored=True)
+    print(log)
+
+
+def error(msg, log_file=None, **kwargs):
+    log = _currenttime() + ' ' + 'ERROR', + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=False)
+    _append_to_file(log_file, log)
+    log = _currenttime() + ' ' + _red('ERROR') + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=True)
+    print(log)
 
 
 # API maintained by a community member
@@ -56,34 +70,30 @@ def api_url(asset, block_number):
     return 'https://asgard-consumer.vercel.app/api/v1/block/detail?pool={}&height={}&isNeedTime=true'.format(asset, block_number)
 
 
-def random_sleep(max_seconds):
+def random_sleep(max_seconds, log_file=None):
     sleep_time = random.randint(0, max_seconds)
-    info('Sleeping...', seconds=sleep_time)
+    info('Sleeping...', log_file, seconds=sleep_time)
     sleep(sleep_time)
 
 
-def _save(df, filename):
+def _save(df, filename, log_file=None):
     if not isinstance(df, pd.DataFrame):
         try:
             df = pd.DataFrame(df, columns=_columns)
         except Exception:
-            error('Failed to convert data to a DataFrame')
+            error('Failed to convert data to a DataFrame', log_file)
             exit()
 
     if len(df) > 0:
         df.to_csv(filename, index=False)
-        info('Data saved!', filename=filename.split('/')[-1], total_rows=len(df))
+        info('Data saved!', log_file, filename=filename.split('/')[-1], total_rows=len(df))
     else:
-        warn('Skipped empty DataFrame', filename=filename.split('/')[-1])
+        warn('Skipped empty DataFrame', log_file, filename=filename.split('/')[-1])
 
 
-def save_data(dfs, data_dir):
+def save_data(dfs, data_dir, log_file=None):
     for asset, df in dfs.items():
-        _save(df, '{}/pool_{}.csv'.format(data_dir, asset))
-
-
-def get_pool_yields(list_assets, data_dir):
-    pass
+        _save(df, '{}/pool_{}.csv'.format(data_dir, asset), log_file)
 
 
 def get_asset_prices(list_assets, data_dir):

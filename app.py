@@ -12,16 +12,19 @@ import src
 # Check pool data; fetch new if out of date
 #-------------------------------------------------------------------------------
 
+LOG_FILE = os.path.abspath('./app.log')
 DATA_DIR = os.path.abspath('./data')
 BUSD_DATA = pd.read_csv(os.path.join(DATA_DIR, 'pool_BNB.BUSD-BD1.csv'))
+
+src.info('App started')
 
 # Fetch data if the latest data point is more than an hour old
 timedelta = datetime.utcnow().timestamp() - BUSD_DATA.iloc[-1]['timestamp']
 if timedelta > 3600:
-    src.warn('Pool data is more than an hour old. Fetching new data...', timedelta=int(timedelta))
-    src.fetch_data(DATA_DIR)
+    src.warn('Pool data is more than an hour old. Fetching new data...', LOG_FILE, timedelta=int(timedelta))
+    # src.fetch_data(DATA_DIR, LOG_FILE)
 else:
-    src.info('Pool data is up to date', timedelta=int(timedelta))
+    src.info('Pool data is up to date', LOG_FILE, timedelta=int(timedelta))
 
 
 #-------------------------------------------------------------------------------
@@ -34,7 +37,7 @@ st.beta_set_page_config(
     page_icon='images/favicon.png'
 )
 
-# Increace width of the main page container
+# Increace width of both the sidebar & the main page container
 # reduce size of tables and matplotlib graphics
 # https://discuss.streamlit.io/t/where-to-set-page-width-when-set-into-non-widescreeen-mode/959
 st.markdown(
@@ -42,6 +45,9 @@ st.markdown(
         <style>
             .reportview-container .main .block-container {{
                 max-width: 1000px;
+            }}
+            .sidebar .sidebar-content {{
+                width: 375px;
             }}
             .stTable {{
                 max-width: 400px;
@@ -120,6 +126,10 @@ pred_params = {
 }
 
 predict_btn = st.sidebar.button('Predict', key='predict_btn')
+
+st.sidebar.header('Developer Tools')
+
+log_btn = st.sidebar.button('Show website log')
 
 st.sidebar.text('')
 st.sidebar.text('')
@@ -307,3 +317,18 @@ if predict_btn:
 
     st.subheader('Waterfall chart')
     st.pyplot(src.plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown))
+
+
+if log_btn:
+    faq.empty()
+
+    with open('./app.log', 'r') as f:
+        log_data = f.readlines()
+
+    log_data.reverse()  # Reverse list so that latest log is displayed first
+
+    log_data = log_data[:500]  # Show only the first 500 lines so that it doesn't crash my potato server
+
+    st.title('Website Log')
+
+    st.code(''.join(log_data))

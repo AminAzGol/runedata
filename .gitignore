@@ -3,3 +3,5 @@ __pycache__/
 junk/
 
 .DS_Store
+
+app.log

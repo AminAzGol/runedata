@@ -15,7 +15,7 @@ have played out to-date using on-chain data.
 
 To simulate past performance, fill out the first section of the left panel, then hit "Simulate".
 
-* To predict future returns, fill out **both** sections, and hit "Predict". Since there is no way
+To predict future returns, fill out **both** sections, and hit "Predict". Since there is no way
 for the algorithm to reliably predict future asset prices, the user needs to supply his/her own
 price targets. The algorithm will extrapolate past yields to the user's selected date, and
 substract impermanent loss from there.'''),
@@ -61,7 +61,7 @@ as Uniswap, these discussions also applies here.
 
 ## Q. Who built this? Can I access the source code?
 
-Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom). The code is [available on GitHub](https://github.com/Larrypcdotcom/thorchain-lp-data)
+Created by [@Larrypcdotcom](https://twitter.com/Larrypcdotcom). The code is [available on GitHub](https://github.com/Larrypcdotcom/RuneData.info)
 under MIT license.
 
 ## Q. Can you add support for \[...\] pool?
