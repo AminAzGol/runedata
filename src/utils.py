@@ -59,7 +59,7 @@ def warn(msg, log_file=None, **kwargs):
 
 
 def error(msg, log_file=None, **kwargs):
-    log = _currenttime() + ' ' + 'ERROR', + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=False)
+    log = _currenttime() + ' ' + 'ERROR' + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=False)
     _append_to_file(log_file, log)
     log = _currenttime() + ' ' + _red('ERROR') + ' ' + msg + ' ' + _join_kwargs(kwargs, colored=True)
     print(log)

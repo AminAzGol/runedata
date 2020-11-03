@@ -12,10 +12,12 @@ import pandas as pd
 
 def plot_value_of_investment(user_data, baselines):
     data = pd.DataFrame({
-        'date': [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ] * 3,
+        # 'date': [ datetime.utcfromtimestamp(ts) for ts in user_data.timestamp ] * 3,
+        'date': [ pd.Timestamp(ts, unit='s', tz='UTC') for ts in user_data.timestamp ] * 3,
         'value': user_data['total_value'].tolist() + baselines['hold_rune'].tolist() + baselines['hold_asset'].tolist(),
         'type': ['LP'] * len(user_data) + ['hold_rune'] * len(user_data) + ['hold_asset'] * len(user_data)
     })
+    print(data)
 
     chart = alt.Chart(data).mark_line().encode(
         x=alt.X('date', axis=alt.Axis(format='%_m/%_d')),
@@ -26,13 +28,18 @@ def plot_value_of_investment(user_data, baselines):
     return chart
 
 
+def plot_value_of_investment_pyplot(user_data, baselines):
+    raise NotImplementedError
+
+
 #-------------------------------------------------------------------------------
 # Pool rewards
 #-------------------------------------------------------------------------------
 
 def plot_pool_rewards(user_data):
     data = pd.DataFrame({
-        'date': [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ] * 3,
+        # 'date': [ datetime.utcfromtimestamp(ts) for ts in user_data.timestamp ] * 3,
+        'date': [ pd.Timestamp(ts, unit='s', tz='UTC') for ts in user_data.timestamp ] * 3,
         'gains/losses': user_data['fee_accrual'].tolist() + user_data['imperm_loss'].tolist() + user_data['total_gains'].tolist(),
         'type': ['fee_accrual'] * len(user_data) + ['imperm_loss'] * len(user_data) + ['total_gains'] * len(user_data)
     })
@@ -50,7 +57,7 @@ def plot_pool_rewards_pyplot(user_data):
     '''Deprecated! Use altair instead.'''
 
     # Timestamps to datetime object
-    dates = [ datetime.fromtimestamp(ts) for ts in user_data.timestamp ]
+    dates = [ datetime.utcfromtimestamp(ts) for ts in user_data.timestamp ]
 
     # Decimals to percentages
     fee_accrual = [ fee * 100 for fee in user_data.fee_accrual ]

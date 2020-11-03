@@ -40,6 +40,10 @@ Therefore it is excluded form yield values.
 
 To predict future returns, the user needs to provide his/her own price targets.
 
+## Q. I get this error - AttributeError: 'NoneType' object has no attribute 'loc'
+
+You selected a time of invested that is too early. The asset pool did not exist at the time.
+
 ## Q. Where can I learn more about THORChain?
 
 The best place to start is to start is the [official Telegram group](https://t.me/thorchain_org).

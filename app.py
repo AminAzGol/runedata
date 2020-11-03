@@ -22,7 +22,7 @@ src.info('App started')
 timedelta = datetime.utcnow().timestamp() - BUSD_DATA.iloc[-1]['timestamp']
 if timedelta > 3600:
     src.warn('Pool data is more than an hour old. Fetching new data...', LOG_FILE, timedelta=int(timedelta))
-    # src.fetch_data(DATA_DIR, LOG_FILE)
+    src.fetch_data(DATA_DIR, LOG_FILE)
 else:
     src.info('Pool data is up to date', LOG_FILE, timedelta=int(timedelta))
 
@@ -132,9 +132,7 @@ st.sidebar.header('Developer Tools')
 log_btn = st.sidebar.button('Show website log')
 
 st.sidebar.text('')
-st.sidebar.text('')
-st.sidebar.text('')
-st.sidebar.info('Based on data last updated at **{}**'.format(
+st.sidebar.info('Data last updated at **{}**.\n\nAll times displayed in this app are in UTC timezone.'.format(
     datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
 ))
 
