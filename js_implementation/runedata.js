@@ -111,11 +111,6 @@ const calculateUserData = (amountInvested, timeInvested, assetData) => {
             valueIfHoldRune, valueIfHoldAsset, valueIfHoldBothRuneAsset,
             feeAccrual, impermLoss, totalGainsVsHold
         };
-        console.log(blockNumber, {
-            runeBalance, assetBalance, runeValueUsd, assetValueUsd, totalValueUsd,
-            valueIfHoldRune, valueIfHoldAsset, valueIfHoldBothRuneAsset,
-            feeAccrual, impermLoss, totalGainsVsHold
-        });
     }
 
     return userData;
@@ -125,10 +120,7 @@ module.exports = { parseCSV, calculateUsdPrices, calculateUserData }
 
 // Test
 console.log(calculateUserData(
-    10000,  // amount of USD invested
-    1603324800,  // UNIX timestamp of the time invested
-    calculateUsdPrices(
-        parseCSV('../data/pool_BNB.BTCB-1DE.csv'),
-        parseCSV('../data/pool_BNB.BUSD-BD1.csv')
-    )  // data of the liquidity pool
+    amountInvested = 10000,
+    timeInvested = 1603324800,
+    assetData = calculateUsdPrices(parseCSV('../data/pool_BNB.BTCB-1DE.csv'), parseCSV('../data/pool_BNB.BUSD-BD1.csv'))
 ));
