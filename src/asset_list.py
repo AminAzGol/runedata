@@ -50,6 +50,11 @@ assets = [
         'name': 'Swingby Token',
         'chain': 'BNB',
         'symbol': 'SWINGBY-888'
+    },
+    {
+        'name': '3x Long Ethereum Token',
+        'chain': 'BNB',
+        'symbol': 'ETHBULL-D33'
     }
 ]
 

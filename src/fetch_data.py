@@ -18,7 +18,7 @@ LAST_BLOCK     = 9999999
 STEP           = 625    # approx. 1 hr
 MAX_SLEEP_TIME = 1
 LIST_ASSETS    = [ '{}.{}'.format(asset['chain'], asset['symbol']) for asset in ASSETS ]
-FIRST_BLOCK    = { asset: 157500 for asset in LIST_ASSETS }  # Starting around the earliest block where BUSD pool existed
+# FIRST_BLOCK    = { asset: 157500 for asset in LIST_ASSETS }  # Starting around the earliest block where BUSD pool existed
 
 
 #-------------------------------------------------------------------------------
@@ -69,8 +69,9 @@ def _fetch_block_data(asset, block_number, log_file=None):
     return None
 
 
-def fetch_data(DATA_DIR, LOG_FILE):
+def fetch_data(DATA_DIR, LOG_FILE, first_block=157500):
     dfs = {}
+    FIRST_BLOCK = {}
     for asset in LIST_ASSETS:
         try:
             dfs[asset] = pd.read_csv('{}/pool_{}.csv'.format(DATA_DIR, asset)).to_dict(orient='records')
@@ -78,6 +79,7 @@ def fetch_data(DATA_DIR, LOG_FILE):
             info('Loaded existing CSV', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
         except:
             dfs[asset] = []
+            FIRST_BLOCK[asset] = first_block
             info('Local CSV not found. Starting new...', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
 
     try:

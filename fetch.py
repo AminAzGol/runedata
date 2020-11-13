@@ -4,4 +4,4 @@
 import src
 
 src.info('Fetching pool data...', './app.log')
-src.fetch_data('./data', './app.log')
+src.fetch_data('./data', './app.log', first_block=475000)
