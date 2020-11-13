@@ -27,7 +27,10 @@ const parseCSV = (path) => {
 };
 
 const calculateUsdPrices = (assetData, busdData) => {
-    var blockNumbers = _getKeysSorted(assetData);
+    var blockNumbersAsset = _getKeysSorted(assetData);
+    var blockNumberBusd = _getKeysSorted(busdData);
+    var blockNumbers = blockNumbersAsset[0] > blockNumberBusd[0] ? blockNumbersAsset : blockNumberBusd;
+
     var assetDataWithPrices = {};
 
     for ( i = 0; i < blockNumbers.length; i++ ) {
