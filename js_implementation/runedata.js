@@ -107,6 +107,7 @@ const calculateUserData = (amountInvested, timeInvested, assetData) => {
         }
 
         userData[blockNumber] = {
+            timestamp: block.timestamp,
             runeBalance, assetBalance, runeValueUsd, assetValueUsd, totalValueUsd,
             valueIfHoldRune, valueIfHoldAsset, valueIfHoldBothRuneAsset,
             feeAccrual, impermLoss, totalGainsVsHold
