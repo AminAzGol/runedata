@@ -47,7 +47,7 @@ st.markdown(
                 max-width: 1000px;
             }}
             .sidebar .sidebar-content {{
-                width: 375px;
+                width: 410px;
             }}
             .stTable {{
                 max-width: 400px;

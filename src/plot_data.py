@@ -12,12 +12,10 @@ import pandas as pd
 
 def plot_value_of_investment(user_data, baselines):
     data = pd.DataFrame({
-        # 'date': [ datetime.utcfromtimestamp(ts) for ts in user_data.timestamp ] * 3,
-        'date': [ pd.Timestamp(ts, unit='s', tz='UTC') for ts in user_data.timestamp ] * 3,
-        'value': user_data['total_value'].tolist() + baselines['hold_rune'].tolist() + baselines['hold_asset'].tolist(),
-        'type': ['LP'] * len(user_data) + ['hold_rune'] * len(user_data) + ['hold_asset'] * len(user_data)
+        'date': [ pd.Timestamp(ts, unit='s', tz='UTC') for ts in user_data.timestamp ] * 4,
+        'value': user_data['total_value'].tolist() + baselines['hold_rune'].tolist() + baselines['hold_asset'].tolist() + baselines['hold_both'].tolist(),
+        'type': ['LP'] * len(user_data) + ['hold_rune'] * len(user_data) + ['hold_asset'] * len(user_data) + ['hold_both'] * len(user_data)
     })
-    print(data)
 
     chart = alt.Chart(data).mark_line().encode(
         x=alt.X('date', axis=alt.Axis(format='%_m/%_d')),
