@@ -2,6 +2,7 @@ import base64
 from datetime import datetime, timezone
 import os
 import pandas as pd
+import requests
 import streamlit as st
 import time
 
@@ -17,14 +18,6 @@ DATA_DIR = os.path.abspath('./data')
 BUSD_DATA = pd.read_csv(os.path.join(DATA_DIR, 'pool_BNB.BUSD-BD1.csv'))
 
 src.info('App started')
-
-# Fetch data if the latest data point is more than an hour old
-timedelta = datetime.utcnow().timestamp() - BUSD_DATA.iloc[-1]['timestamp']
-if timedelta > 3600:
-    src.warn('Pool data is more than an hour old. Fetching new data...', LOG_FILE, timedelta=int(timedelta))
-    src.fetch_data(DATA_DIR, LOG_FILE)
-else:
-    src.info('Pool data is up to date', LOG_FILE, timedelta=int(timedelta))
 
 
 #-------------------------------------------------------------------------------
@@ -129,12 +122,18 @@ predict_btn = st.sidebar.button('Predict', key='predict_btn')
 
 st.sidebar.header('Developer Tools')
 
+sync_btn = st.sidebar.button('Sync data')
+
 log_btn = st.sidebar.button('Show website log')
 
-st.sidebar.text('')
-st.sidebar.info('Data last updated at **{}**.\n\nAll times displayed in this app are in UTC timezone.'.format(
-    datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
-))
+# Fetch data if the latest data point is more than an hour old
+timedelta = datetime.utcnow().timestamp() - BUSD_DATA.iloc[-1]['timestamp']
+if timedelta > 3600:
+    st.sidebar.warning('Pool data was updated {:.1f} hours ago. Please click the "Sync data" button above to sync data with the blockchain.'.format(timedelta / 3600))
+else:
+    st.sidebar.info('Data last updated at **{}**.\n\nAll times displayed in this app are in UTC timezone.'.format(
+        datetime.fromtimestamp(BUSD_DATA.iloc[-1]['timestamp']).strftime("%m/%d/%Y %H:%M:%S UTC")
+    ))
 
 
 #-------------------------------------------------------------------------------
@@ -317,14 +316,37 @@ if predict_btn:
     st.pyplot(src.plot_gains_breakdown_compared_waterfall(current_breakdown, future_breakdown))
 
 
+if sync_btn:
+    # faq.empty()
+
+    # current_block = requests.get('http://104.248.96.152:8080/v1/thorchain/lastblock').json()['thorchain']
+    # current_block = int(current_block)
+
+    # last_updated = []
+    # for asset in src.assets:
+    #     data = pd.read_csv('{}/pool_{}.{}.csv'.format(DATA_DIR, asset['chain'], asset['symbol']))
+    #     last_updated.append({
+    #         'asset': '{}.{}'.format(asset['chain'], asset['symbol']),
+    #         'last_updated': '{:,}'.format(data.iloc[-1]['block_number'])
+    #     })
+    # last_updated = pd.DataFrame(last_updated)
+
+    # st.title('Sync Data')
+
+    # st.markdown('Current block: {:,}'.format((current_block)))
+
+    # st.dataframe(last_updated)
+
+    src.fetch_data(DATA_DIR, log_file=LOG_FILE)
+
+
 if log_btn:
     faq.empty()
 
     with open('./app.log', 'r') as f:
         log_data = f.readlines()
 
-    log_data.reverse()  # Reverse list so that latest log is displayed first
-
+    log_data.reverse()         # Reverse list so that latest log is displayed first
     log_data = log_data[:500]  # Show only the first 500 lines so that it doesn't crash my potato server
 
     st.title('Website Log')

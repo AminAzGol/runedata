@@ -69,24 +69,24 @@ def _fetch_block_data(asset, block_number, log_file=None):
     return None
 
 
-def fetch_data(DATA_DIR, LOG_FILE, first_block=157500):
+def fetch_data(data_dir, list_assets=LIST_ASSETS, log_file=None, first_block=157500):
     dfs = {}
     FIRST_BLOCK = {}
     for asset in LIST_ASSETS:
         try:
-            dfs[asset] = pd.read_csv('{}/pool_{}.csv'.format(DATA_DIR, asset)).to_dict(orient='records')
+            dfs[asset] = pd.read_csv('{}/pool_{}.csv'.format(data_dir, asset)).to_dict(orient='records')
             FIRST_BLOCK[asset] = dfs[asset][-1]['block_number'] + STEP
-            info('Loaded existing CSV', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
+            info('Loaded existing CSV', log_file, asset=asset, first_block=FIRST_BLOCK[asset])
         except:
             dfs[asset] = []
             FIRST_BLOCK[asset] = first_block
-            info('Local CSV not found. Starting new...', LOG_FILE, asset=asset, first_block=FIRST_BLOCK[asset])
+            info('Local CSV not found. Starting new...', log_file, asset=asset, first_block=FIRST_BLOCK[asset])
 
     try:
         for block_number in range(min(FIRST_BLOCK.values()), LAST_BLOCK + 1, STEP):
             for asset in LIST_ASSETS:
                 if block_number >= FIRST_BLOCK[asset]:
-                    data = _fetch_block_data(asset, block_number, LOG_FILE)
+                    data = _fetch_block_data(asset, block_number, log_file)
 
                     if data == 'kbinterrupt':
                         raise KeyboardInterrupt
@@ -101,18 +101,18 @@ def fetch_data(DATA_DIR, LOG_FILE, first_block=157500):
 
                     elif data != None:
                         dfs[asset].append(data)
-                        info('Appended data', LOG_FILE, **data)
+                        info('Appended data', log_file, **data)
 
                     # Sleep a random time so that the server doesn't block me
                     random_sleep(MAX_SLEEP_TIME)
 
             # Update: save to file every time a new data point is fetched
-            save_data(dfs, DATA_DIR)
+            save_data(dfs, data_dir)
 
     except KeyboardInterrupt:
-        warn('User interruption! Saving data...', LOG_FILE)
+        warn('User interruption! Saving data...', log_file)
 
     except Exception:
-        error('Error! Saving data...', LOG_FILE)
+        error('Error! Saving data...', log_file)
 
     info('Done!')
