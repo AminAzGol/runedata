@@ -97,6 +97,13 @@ $(async () => {
     fitCanvasToContainer($('#simulateTotalValueCanvas')[0]);
     drawPlaceholderImage($('#simulateTotalValueCanvas')[0], 'images/simulateTotalValuePlaceholder.png');
 
+    fitCanvasToContainer($('#simulatePoolRewardsCanvas')[0]);
+    drawPlaceholderImage($('#simulatePoolRewardsCanvas')[0], 'images/simulatePoolRewardsPlaceholder.png');
+
+    // Default page to simulate, total page on load
+    $('#simulateBtn').trigger('click');
+    $('#totalValueToggle').trigger('click');
+
     // Fetch asset prices
     const PRICES = await getCurrentPrices(ASSETS);
 
