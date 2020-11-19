@@ -50,7 +50,12 @@ const getPastSimulation = async (amountInvested, dateInvested, pool) => {
         assetValue = assetBalance * assetData[i].assetPrice;
         totalValue = runeValue + assetValue;
 
-        userData.push({ runeBalance, assetBalance, runeValue, assetValue, totalValue });
+        userData.push({
+            timestamp: assetData[i].time,
+            runePrice: assetData[i].runePrice,
+            assetPrice: assetData[i].assetPrice,
+            runeBalance, assetBalance, runeValue, assetValue, totalValue
+        });
 
         totalValueIfHoldRune = 2 * userData[0].runeBalance * assetData[i].runePrice;
         totalValueIfHoldAsset = 2 * userData[0].assetBalance * assetData[i].assetPrice;
@@ -69,16 +74,61 @@ const getPastSimulation = async (amountInvested, dateInvested, pool) => {
         totalGains = totalValue / totalValueIfHoldBoth - 1;
 
         userData[i] = {
-            timestamp: assetData[i].time,
-            totalValueIfHoldRune, totalValueIfHoldAsset, totalValueIfHoldBoth,
-            feeAccrued, impermLoss, totalGains,
             ...userData[i],
+            totalValueIfHoldRune, totalValueIfHoldAsset, totalValueIfHoldBoth,
+            feeAccrued, impermLoss, totalGains
         };
     }
 
     return userData;
 };
 
-const calculatePnlBreakdown = (userData) => {
-    //pass
+const calculatePLBreakdown = (userData) => {
+    var start = userData[0];
+    var end = userData[userData.length - 1];
+
+    kValueStart = start.runeBalance * start.assetBalance;
+    kValueEnd = end.runeBalance * end.assetBalance;
+
+    // P&L due to RUNE price movement
+    runeMovement = start.runeBalance * (end.runePrice - start.runePrice);
+
+    // P&L due to ASSET price movement
+    assetMovement = start.assetBalance * (end.assetPrice - start.assetPrice);
+
+    // RUNE & ASSET balances at the end IF NO FEE WAS RECEIVED
+    runeBalanceNoFee = end.runeBalance * Math.sqrt(kValueStart / kValueEnd);
+    assetBalanceNoFee = end.assetBalance * Math.sqrt(kValueStart / kValueEnd);
+
+    // Fees
+    fees = (end.runeBalance - runeBalanceNoFee) * end.runePrice + (end.assetBalance - assetBalanceNoFee) * end.assetPrice;
+
+    // Imperm loss
+    impermLoss = (runeBalanceNoFee - start.runeBalance) * end.runePrice + (assetBalanceNoFee - start.assetBalance) * end.assetPrice;
+
+    // Total
+    total = runeMovement + assetMovement + fees + impermLoss
+
+    return {
+        runeMovement: {
+            value: runeMovement,
+            percentage: runeMovement / start.totalValue
+        },
+        assetMovement: {
+            value: assetMovement,
+            percentage: assetMovement / start.totalValue
+        },
+        fees: {
+            value: fees,
+            percentage: fees / start.totalValue
+        },
+        impermLoss: {
+            value: impermLoss,
+            percentage: impermLoss / start.totalValue
+        },
+        total: {
+            value: total,
+            percentage: total / start.totalValue
+        }
+    };
 };

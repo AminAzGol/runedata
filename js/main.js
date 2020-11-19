@@ -81,8 +81,14 @@ $(async () => {
             if (_simulatePoolRewardsChart) {
                 _simulatePoolRewardsChart.destroy();
             }
+            if (_simulatePLBreakdownChart) {
+                _simulatePLBreakdownChart.destroy();
+            }
+
             _simulateTotalValueChart = plotTotalValue($('#simulateTotalValueCanvas'), userData);
             _simulatePoolRewardsChart = plotPoolRewards($('#simulatePoolRewardsCanvas'), userData);
+            _simulatePLBreakdownChart = plotPLBreakdown($('#simulatePLBreakdownCanvas'), calculatePLBreakdown(userData));
+
             $('#totalValueToggle').trigger('click');
             $('#simulateChartOverlay').hide();
             hideSpinner();
@@ -99,6 +105,9 @@ $(async () => {
 
     fitCanvasToContainer($('#simulatePoolRewardsCanvas')[0]);
     drawPlaceholderImage($('#simulatePoolRewardsCanvas')[0], 'images/simulatePoolRewardsPlaceholder.png');
+
+    fitCanvasToContainer($('#simulatePLBreakdownCanvas')[0]);
+    drawPlaceholderImage($('#simulatePLBreakdownCanvas')[0], 'images/simulatePLBreakdownPlaceholder.png');
 
     // Default page to simulate, total page on load
     $('#simulateBtn').trigger('click');

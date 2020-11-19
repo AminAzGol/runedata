@@ -1,3 +1,7 @@
+// https://stackoverflow.com/questions/39603447/how-can-i-change-the-font-family-for-the-labels-in-chart-js/48580585
+// https://www.chartjs.org/docs/latest/general/fonts.html
+Chart.defaults.global.defaultFontSize = 16;
+
 // https://stackoverflow.com/questions/10214873/make-canvas-as-wide-and-as-high-as-parent
 const fitCanvasToContainer = (canvas) => {
     canvas.style.width = '100%';
@@ -19,6 +23,23 @@ const drawPlaceholderImage = (canvas, imageURL) => {
 // https://stackoverflow.com/questions/10865398/how-to-clear-an-html-canvas
 const _clearCanvas = (canvas) => {
     canvas.width = canvas.width;  // Set height or width clears the canvas
+};
+
+const _barColor = (value) => {
+    return value >= 0 ? 'green' : 'red';
+};
+
+const _formatPriceChange = (value) => {
+    if (value >= 0) {
+        var sign = '+';
+    } else {
+        var sign = '-';
+    }
+    return sign + '$' + Math.abs(value).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+const _getYOffset = (value) => {
+    return value >= 0 ? -5 : +22;
 };
 
 const plotTotalValue = (canvas, userData) => {
@@ -78,19 +99,17 @@ const plotTotalValue = (canvas, userData) => {
             }]
         },
         options: {
-            // responsive: true,  // https://stackoverflow.com/questions/37621020/setting-width-and-height
-            // maintainAspectRatio: false,
+            responsive: true,  // https://stackoverflow.com/questions/37621020/setting-width-and-height
+            maintainAspectRatio: false,
             scales: {
                 xAxes: [{
                     type: 'time',
                     display: true,
                     scaleLabel: { display: true },
-                    time: { unit: 'day' },
-                    ticks: { fontSize: 16 }
+                    time: { unit: 'day' }
                 }],
                 yAxes: [{
                     ticks: {
-                        fontSize: 16,
                         callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                     }
                 }]
@@ -98,11 +117,6 @@ const plotTotalValue = (canvas, userData) => {
             elements: {
                 point: {
                     radius: 0
-                }
-            },
-            legend: {
-                labels: {
-                    fontSize: 16
                 }
             }
         }
@@ -157,19 +171,17 @@ const plotPoolRewards = (canvas, userData) => {
             }]
         },
         options: {
-            responsive: true,  // https://stackoverflow.com/questions/37621020/setting-width-and-height
+            responsive: true,
             maintainAspectRatio: false,
             scales: {
                 xAxes: [{
                     type: 'time',
                     display: true,
                     scaleLabel: { display: true },
-                    time: { unit: 'day' },
-                    ticks: { fontSize: 16 }
+                    time: { unit: 'day' }
                 }],
                 yAxes: [{
                     ticks: {
-                        fontSize: 16,
                         callback: (value, index, values) => value + '%'
                     }
                 }]
@@ -178,11 +190,96 @@ const plotPoolRewards = (canvas, userData) => {
                 point: {
                     radius: 0
                 }
+            }
+        }
+    });
+
+    return chart;
+};
+
+const plotPLBreakdown = (canvas, plBreakdown) => {
+    _clearCanvas(canvas);
+
+    var data = [
+        plBreakdown.runeMovement.value.toFixed(2),
+        plBreakdown.assetMovement.value.toFixed(2),
+        plBreakdown.fees.value.toFixed(2),
+        plBreakdown.impermLoss.value.toFixed(2),
+        plBreakdown.total.value.toFixed(2)
+    ];
+    var max = Math.max(...data);
+    var min = Math.min(...data);
+    var range = max - min;
+    var ymax = max + 0.1 * range;
+    var ymin = Math.min(min, 0) - 0.1 * range;
+
+    var chart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: [
+                'RUNE price',
+                'asset price',
+                'fees & rewards',
+                'impermanent loss',
+                'total profit'
+            ],
+            datasets: [{
+                data,
+                backgroundColor: [
+                    _barColor(plBreakdown.runeMovement.value),
+                    _barColor(plBreakdown.assetMovement.value),
+                    _barColor(plBreakdown.fees.value),
+                    _barColor(plBreakdown.impermLoss.value),
+                    'magenta',
+                ],
+                borderColor: 'black',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            // https://stackoverflow.com/questions/42556835/show-values-on-top-of-bars-in-chart-js
+            "hover": {
+                "animationDuration": 0
+            },
+            "animation": {
+                "duration": 1,
+                "onComplete": function() {
+                  var chartInstance = this.chart,
+                    ctx = chartInstance.ctx;
+
+                  ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'bottom';
+
+                  this.data.datasets.forEach(function(dataset, i) {
+                    var meta = chartInstance.controller.getDatasetMeta(i);
+                    meta.data.forEach(function(bar, index) {
+                      var data = dataset.data[index];
+                      ctx.fillText(_formatPriceChange(data), bar._model.x, bar._model.y + _getYOffset(data));
+                    });
+                  });
+                }
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: { display: true }
+                }],
+                yAxes: [{
+                    ticks: {
+                        max: ymax.toFixed(0),
+                        min: ymin.toFixed(0),
+                        callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    }
+                }]
             },
             legend: {
-                labels: {
-                    fontSize: 16
-                }
+                display: false
+            },
+            tooltips: {
+                enabled: false
             }
         }
     });
