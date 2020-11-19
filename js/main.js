@@ -33,6 +33,20 @@ $(async () => {
         $('#predictForm').show();
     });
 
+    $('#simulateSubmitBtn').click((event) => {
+        event.preventDefault();
+
+        var amountInvested = parseFloat($('#amountSimulate').val());
+        var dateInvested = $('#dateSimulate').val();
+        var pool = $('#poolSimulate').val();
+
+        showSpinner();
+        getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
+            console.log(userData);
+            hideSpinner();
+        });
+    });
+
     // Generate options for pool selectors
     generatePoolOptions($('#poolSimulate'));
     generatePoolOptions($('#poolPredict'));
