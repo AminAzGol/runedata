@@ -42,7 +42,7 @@ $(async () => {
 
         showSpinner();
         getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
-            console.log(userData);
+            plotTotalValue($('#simulateChartCanvas'), userData);
             hideSpinner();
         });
     });

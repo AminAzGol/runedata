@@ -69,9 +69,10 @@ const getPastSimulation = async (amountInvested, dateInvested, pool) => {
         totalGains = totalValue / totalValueIfHoldBoth - 1;
 
         userData[i] = {
-            ...userData[i],
+            timestamp: assetData[i].time,
             totalValueIfHoldRune, totalValueIfHoldAsset, totalValueIfHoldBoth,
-            feeAccrued, impermLoss, totalGains
+            feeAccrued, impermLoss, totalGains,
+            ...userData[i],
         };
     }
 
