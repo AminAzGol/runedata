@@ -33,20 +33,22 @@ $(async () => {
         $('#predictForm').show();
     });
 
+    // Generate options for pool selectors
     generatePoolOptions($('#poolSimulate'));
     generatePoolOptions($('#poolPredict'));
 
-    getCurrentPrices(NODE_IP, ASSETS).then((prices) => {
-        var poolPredict = $('#poolPredict');
-        var priceTargetRune = $('#priceTargetRune');
-        var priceTargetAsset = $('#priceTargetAsset');
+    // Fetch asset prices
+    const PRICES = await getCurrentPrices(ASSETS)
 
-        priceTargetRune.val(_formatPrice(prices['RUNE']));
-        priceTargetAsset.val(_formatPrice(prices['BNB.BNB']));
+    var poolPredict = $('#poolPredict');
+    var priceTargetRune = $('#priceTargetRune');
+    var priceTargetAsset = $('#priceTargetAsset');
 
-        poolPredict.change(() => {
-            priceTargetAsset.val(_formatPrice(prices[poolPredict.val()]));
-        });
+    priceTargetRune.val(_formatPrice(PRICES['RUNE']));
+    priceTargetAsset.val(_formatPrice(PRICES['BNB.BNB']));
+
+    poolPredict.change(() => {
+        priceTargetAsset.val(_formatPrice(PRICES[poolPredict.val()]));
     });
 
     hideSpinner();

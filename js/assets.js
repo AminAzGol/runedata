@@ -30,5 +30,3 @@ const ASSETS = [
         symbol: 'TWT-8C2'
     }
 ];
-
-const NODE_IP = '15.165.68.38';
