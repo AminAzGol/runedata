@@ -1,3 +1,26 @@
+// https://stackoverflow.com/questions/10214873/make-canvas-as-wide-and-as-high-as-parent
+const fitCanvasToContainer = (canvas) => {
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+}
+
+// https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
+const drawPlaceholderImage = (canvas, imageURL) => {
+    var context = canvas.getContext('2d');
+    var img = new Image();
+    img.onload = () => {
+        context.drawImage(img, 8, 8, canvas.width - 16, canvas.height - 16);  // 8 and 16 are paddings
+    };
+    img.src = imageURL;
+};
+
+// https://stackoverflow.com/questions/10865398/how-to-clear-an-html-canvas
+const _clearCanvas = (canvas) => {
+    canvas.width = canvas.width;  // Set height or width clears the canvas
+};
+
 const plotTotalValue = (canvas, userData) => {
     var totalValueLP = [];
     var totalValueIfHoldRune = [];
@@ -22,6 +45,8 @@ const plotTotalValue = (canvas, userData) => {
             y: userData[i].totalValueIfHoldBoth.toFixed(2)
         });
     }
+
+    _clearCanvas(canvas);
 
     var chart = new Chart(canvas, {
         type: 'line',
@@ -53,6 +78,8 @@ const plotTotalValue = (canvas, userData) => {
             }]
         },
         options: {
+            // responsive: true,  // https://stackoverflow.com/questions/37621020/setting-width-and-height
+            // maintainAspectRatio: false,
             scales: {
                 xAxes: [{
                     type: 'time',
@@ -71,6 +98,11 @@ const plotTotalValue = (canvas, userData) => {
             elements: {
                 point: {
                     radius: 0
+                }
+            },
+            legend: {
+                labels: {
+                    fontSize: 16
                 }
             }
         }

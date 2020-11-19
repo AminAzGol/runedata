@@ -27,7 +27,7 @@
       <h1 class="text-danger handwritten-font">RuneData.info</h1>
     </div>
 
-    <div class="container p-2 mb-2 text-center max-width-800px">
+    <div class="container p-2 mb-3 text-center max-width-800px">
       <button class="btn btn-primary mb-1" id="simulateBtn">
         Simulate past performance
       </button>
@@ -36,10 +36,42 @@
       </button>
     </div>
 
-    <div class="container p-2 mb-2 max-width-800px" id="simulateForm">
-      <form>
+    <div class="container p-2 max-width-800px" id="simulateContainer">
+      <div class="embed-responsive embed-responsive-4by3 w-100 mb-2">
+        <canvas id="simulateChartCanvas" class="embed-responsive-item"></canvas>
+        <div id="simulateChartOverlay" class="overlay">
+          <div class="overlay-text">
+            Fill out the form at the bottom of the page, then hit "Submit" to continue.
+          </div>
+        </div>
+      </div>
+
+      <div class="card w-100 mb-4" id="simulateResultCard">
+        <div class="card-header">
+          <ul class="nav nav-pills card-header-pills align-items-center">
+            <li class="nav-item ml-3 mr-auto align-text-bottom">
+              Analysis
+            </li>
+            <li class="nav-item ml-auto">
+              <a class="nav-link active" id="totalValueToggle" href="">Total value</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="poolRewardsToggle" href="">Pool rewards</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="PnlBreakdownToggle" href="">P/L breakdown</a>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body text-center">
+          <div id="simulateResultText">
+            Fill out the form at the bottom of the page, then hit "Submit" to continue.
+          </div>
+        </div>
+      </div>
+
+      <form id="simulateForm">
         <div class="form-row">
-          <div class="form-group col-md-1"></div>
           <div class="form-group col-md-4">
             <label for="amountSimulate">Amount invested</label>
             <div class="input-group">
@@ -55,7 +87,6 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group col-md-1"></div>
           <div class="form-group col-md-5">
             <label for="dateSimulate">Date invested</label>
             <input type="date" class="form-control" id="dateSimulate">
@@ -67,10 +98,9 @@
       </form>
     </div>
 
-    <div style="display: none;" class="container p-2 mb-2 max-width-800px" id="predictForm">
+    <div style="display: none;" class="container p-2 mb-2 max-width-800px" id="predictContainer">
       <form>
         <div class="form-row">
-          <div class="form-group col-md-1"></div>
           <div class="form-group col-md-4">
             <label for="amountInvestedPredict">Amount currently invested</label>
             <div class="input-group">
@@ -86,7 +116,6 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group col-md-1"></div>
           <div class="form-group col-md-5">
             <label for="datePredict">Predict result on...</label>
             <input type="date" class="form-control" id="datePredict">
@@ -102,7 +131,6 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group col-md-1"></div>
           <div class="form-group col-md-4">
             <label for="priceTargetRune">Price target for RUNE</label>
             <div class="input-group">
@@ -126,10 +154,6 @@
           </div>
         </div>
       </form>
-    </div>
-
-    <div class="container p-2 mb-2 max-width-800px" id="simulateChartContainer">
-      <canvas id="simulateChartCanvas"></canvas>
     </div>
 
     <footer class="text-center">

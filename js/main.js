@@ -1,3 +1,5 @@
+var _chart = null;
+
 const _formatPrice = (p) => {
     return p.toFixed(p >= 1 ? 2 : 5);
 }
@@ -10,6 +12,10 @@ const hideSpinner = () => {
     $('#spinnerContainer').fadeOut();
 };
 
+const hideOverlay = (overlay) => {
+    overlay.hide();
+}
+
 const generatePoolOptions = (select) => {
     for (asset of ASSETS) {
         select.append(new Option(`${asset.name} (${asset.chain}.${asset.symbol})`, `${asset.chain}.${asset.symbol}`));
@@ -21,16 +27,16 @@ $(async () => {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#predictBtn').removeClass('btn-primary').addClass('btn-outline-primary');
 
-        $('#simulateForm').show();
-        $('#predictForm').hide();
+        $('#simulateContainer').show();
+        $('#predictContainer').hide();
     });
 
     $('#predictBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#simulateBtn').removeClass('btn-primary').addClass('btn-outline-primary');
 
-        $('#simulateForm').hide();
-        $('#predictForm').show();
+        $('#simulateContainer').hide();
+        $('#predictContainer').show();
     });
 
     $('#simulateSubmitBtn').click((event) => {
@@ -42,7 +48,11 @@ $(async () => {
 
         showSpinner();
         getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
-            plotTotalValue($('#simulateChartCanvas'), userData);
+            if (_chart) {
+                _chart.destroy();
+            }
+            _chart = plotTotalValue($('#simulateChartCanvas'), userData);
+            hideOverlay($('#simulateChartOverlay'));
             hideSpinner();
         });
     });
@@ -51,8 +61,12 @@ $(async () => {
     generatePoolOptions($('#poolSimulate'));
     generatePoolOptions($('#poolPredict'));
 
+    // Draw placeholder images on canvas
+    fitCanvasToContainer($('#simulateChartCanvas')[0]);
+    drawPlaceholderImage($('#simulateChartCanvas')[0], 'images/simulateTotalValuePlaceholder.png');
+
     // Fetch asset prices
-    const PRICES = await getCurrentPrices(ASSETS)
+    const PRICES = await getCurrentPrices(ASSETS);
 
     var poolPredict = $('#poolPredict');
     var priceTargetRune = $('#priceTargetRune');
