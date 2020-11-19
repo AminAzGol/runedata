@@ -38,10 +38,12 @@
 
     <div class="container p-2 max-width-800px" id="simulateContainer">
       <div class="embed-responsive embed-responsive-4by3 w-100 mb-2">
-        <canvas id="simulateChartCanvas" class="embed-responsive-item"></canvas>
+        <canvas id="simulateTotalValueCanvas" class="embed-responsive-item"></canvas>
+        <canvas id="simulatePoolRewardsCanvas" class="embed-responsive-item" style="display: none"></canvas>
+        <canvas id="simulatePLBreakdownCanvas" class="embed-responsive-item" style="display: none"></canvas>
         <div id="simulateChartOverlay" class="overlay">
           <div class="overlay-text">
-            Fill out the form at the bottom of the page, then hit "Submit" to continue.
+            Pick your options at the bottom fo the page, then hit "Submit" to continue.
           </div>
         </div>
       </div>
@@ -59,13 +61,13 @@
               <a class="nav-link" id="poolRewardsToggle" href="">Pool rewards</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="PnlBreakdownToggle" href="">P/L breakdown</a>
+              <a class="nav-link" id="PLBreakdownToggle" href="">P/L breakdown</a>
             </li>
           </ul>
         </div>
         <div class="card-body text-center">
           <div id="simulateResultText">
-            Fill out the form below, then hit "Submit" to continue.
+            Pick your options below, then hit "Submit" to continue.
           </div>
         </div>
       </div>

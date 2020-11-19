@@ -110,3 +110,82 @@ const plotTotalValue = (canvas, userData) => {
 
     return chart;
 };
+
+const plotPoolRewards = (canvas, userData) => {
+    var feeAccrued = [];
+    var impermLoss = [];
+    var totalGains = [];
+
+    for (i = 0; i < userData.length; i++) {
+        feeAccrued.push({
+            x: new Date(userData[i].timestamp * 1000),
+            y: (userData[i].feeAccrued * 100).toFixed(1)
+        });
+        impermLoss.push({
+            x: new Date(userData[i].timestamp * 1000),
+            y: (userData[i].impermLoss * 100).toFixed(1)
+        });
+        totalGains.push({
+            x: new Date(userData[i].timestamp * 1000),
+            y: (userData[i].totalGains * 100).toFixed(1)
+        });
+    }
+
+    _clearCanvas(canvas);
+
+    var chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+            datasets: [{
+                label: 'fee & rewards accrued',
+                data: feeAccrued,
+                fill: false,
+                borderColor: 'blue',
+                borderWidth: 1.5
+            }, {
+                label: 'impermanent loss',
+                data: impermLoss,
+                fill: false,
+                borderColor: 'orange',
+                borderWidth: 1.5
+            }, {
+                label: 'total gains vs HODL',
+                data: totalGains,
+                fill: false,
+                borderColor: 'red',
+                borderWidth: 1.5
+            }]
+        },
+        options: {
+            responsive: true,  // https://stackoverflow.com/questions/37621020/setting-width-and-height
+            maintainAspectRatio: false,
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    display: true,
+                    scaleLabel: { display: true },
+                    time: { unit: 'day' },
+                    ticks: { fontSize: 16 }
+                }],
+                yAxes: [{
+                    ticks: {
+                        fontSize: 16,
+                        callback: (value, index, values) => value + '%'
+                    }
+                }]
+            },
+            elements: {
+                point: {
+                    radius: 0
+                }
+            },
+            legend: {
+                labels: {
+                    fontSize: 16
+                }
+            }
+        }
+    });
+
+    return chart;
+};

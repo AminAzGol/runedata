@@ -1,4 +1,6 @@
-var _chart = null;
+var _simulateTotalValueChart = null;
+var _simulatePoolRewardsChart = null;
+var _simulatePLBreakdownChart = null;
 
 const _formatPrice = (p) => {
     return p.toFixed(p >= 1 ? 2 : 5);
@@ -12,14 +14,15 @@ const hideSpinner = () => {
     $('#spinnerContainer').fadeOut();
 };
 
-const hideOverlay = (overlay) => {
-    overlay.hide();
-}
-
 const generatePoolOptions = (select) => {
     for (asset of ASSETS) {
         select.append(new Option(`${asset.name} (${asset.chain}.${asset.symbol})`, `${asset.chain}.${asset.symbol}`));
     }
+};
+
+const setActiveToggle = (toggle) => {
+    $('#totalValueToggle').parent().parent().find('.nav-link').removeClass('active');
+    toggle.addClass('active');
 };
 
 $(async () => {
@@ -39,6 +42,30 @@ $(async () => {
         $('#predictContainer').show();
     });
 
+    $('#totalValueToggle').click(function (event) {
+        event.preventDefault();
+        setActiveToggle($(this));
+        $('#simulateTotalValueCanvas').show();
+        $('#simulatePoolRewardsCanvas').hide();
+        $('#simulatePLBreakdownCanvas').hide();
+    });
+
+    $('#poolRewardsToggle').click(function (event) {
+        event.preventDefault();
+        setActiveToggle($(this));
+        $('#simulateTotalValueCanvas').hide();
+        $('#simulatePoolRewardsCanvas').show();
+        $('#simulatePLBreakdownCanvas').hide();
+    });
+
+    $('#PLBreakdownToggle').click(function (event) {
+        event.preventDefault();
+        setActiveToggle($(this));
+        $('#simulateTotalValueCanvas').hide();
+        $('#simulatePoolRewardsCanvas').hide();
+        $('#simulatePLBreakdownCanvas').show();
+    });
+
     $('#simulateSubmitBtn').click((event) => {
         event.preventDefault();
 
@@ -48,11 +75,16 @@ $(async () => {
 
         showSpinner();
         getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
-            if (_chart) {
-                _chart.destroy();
+            if (_simulateTotalValueChart) {
+                _simulateTotalValueChart.destroy();
             }
-            _chart = plotTotalValue($('#simulateChartCanvas'), userData);
-            hideOverlay($('#simulateChartOverlay'));
+            if (_simulatePoolRewardsChart) {
+                _simulatePoolRewardsChart.destroy();
+            }
+            _simulateTotalValueChart = plotTotalValue($('#simulateTotalValueCanvas'), userData);
+            _simulatePoolRewardsChart = plotPoolRewards($('#simulatePoolRewardsCanvas'), userData);
+            $('#totalValueToggle').trigger('click');
+            $('#simulateChartOverlay').hide();
             hideSpinner();
         });
     });
@@ -62,8 +94,8 @@ $(async () => {
     generatePoolOptions($('#poolPredict'));
 
     // Draw placeholder images on canvas
-    fitCanvasToContainer($('#simulateChartCanvas')[0]);
-    drawPlaceholderImage($('#simulateChartCanvas')[0], 'images/simulateTotalValuePlaceholder.png');
+    fitCanvasToContainer($('#simulateTotalValueCanvas')[0]);
+    drawPlaceholderImage($('#simulateTotalValueCanvas')[0], 'images/simulateTotalValuePlaceholder.png');
 
     // Fetch asset prices
     const PRICES = await getCurrentPrices(ASSETS);
