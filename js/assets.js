@@ -115,7 +115,7 @@ var _assets = [
         symbol: 'XRP-BF2'
     },
     {
-        name: '3X Short Bitcoin Token',
+        name: '3x Short Bitcoin Token',
         chain: 'BNB',
         symbol: 'BEAR-14C'
     },
