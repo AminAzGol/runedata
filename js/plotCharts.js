@@ -58,10 +58,12 @@ const plotTotalValue = (canvas, userData) => {
                     type: 'time',
                     display: true,
                     scaleLabel: { display: true },
-                    time: { unit: 'day' }
+                    time: { unit: 'day' },
+                    ticks: { fontSize: 16 }
                 }],
                 yAxes: [{
                     ticks: {
+                        fontSize: 16,
                         callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                     }
                 }]
