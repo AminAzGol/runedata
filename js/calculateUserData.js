@@ -1,7 +1,11 @@
 const getCurrentPrices = async (assets) => {
     var query = 'asset=BNB.BUSD-BD1';
     for (asset of assets) {
-        query += `,${asset.chain}.${asset.symbol}`;
+        if (typeof asset == 'object') {
+            query += `,${asset.chain}.${asset.symbol}`;
+        } else if (typeof asset == 'string') {
+            query += ',' + asset;
+        }
     }
 
     var priceData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/assets?${query}`);
@@ -159,17 +163,64 @@ const _calculateFeeAPY = async (pool, timespan) => {
     };
     var roi = 0.5 * (kValue.end / kValue.start - 1);
     var apy = (1 + roi) ** (365 * 24 / hours) - 1;
-    console.log(apy);
+    return apy;
 };
 
 const calculateValueProjection = async (amountInvested, dateToPredict,
                                         pool, timespanForAPY,
-                                        priceTargetRune, priceTargetAsset) => {
-    console.log({
-        amountInvested, dateToPredict,
-        pool, timespanForAPY,
-        priceTargetRune, priceTargetAsset
-    });
+                                        priceTargetRune, priceTargetAsset,
+                                        prices) => {
+    // Value if hold
+    if (!prices) {
+        prices = await getCurrentPrices([pool]);
+    }
+    var withdrawAndHoldRune = amountInvested * priceTargetRune / prices['RUNE'];
+    var withdrawAndHoldAsset = amountInvested * priceTargetAsset / prices[pool];
+    var withdrawAndHoldBoth = 0.5 * (withdrawAndHoldRune + withdrawAndHoldAsset);
 
-    return null;
+    // Predict fee income
+    var apy = await _calculateFeeAPY(pool, timespanForAPY);
+    var hours = (new Date(dateToPredict) - new Date(Date.now())) / 1000 / 60 / 60;
+    var fees = (1 + apy) ** (hours / (365 * 24)) - 1;
+
+    // Predict imperm loss
+    var currentPriceRatio = prices[pool] / prices['RUNE'];
+    var futurePriceRatio = priceTargetAsset / priceTargetRune;
+    var priceSwing = currentPriceRatio / futurePriceRatio;
+    var impermLoss = 2 * Math.sqrt(priceSwing) / (priceSwing + 1) - 1;
+
+    // Total gains
+    var total = fees + impermLoss;
+
+    return {
+        keepProvidingLiquidity: {
+            totalValue: withdrawAndHoldBoth * (1 + total),
+            change: withdrawAndHoldBoth * (1 + total) - amountInvested,
+            fees: {
+                amount: withdrawAndHoldBoth * fees,
+                percentage: fees,
+                apy: apy
+            },
+            impermLoss: {
+                amount: withdrawAndHoldBoth * impermLoss,
+                percentage: impermLoss
+            },
+            total: {
+                amount: withdrawAndHoldBoth * total,
+                percentage: total
+            }
+        },
+        withdrawAndHoldRune: {
+            totalValue: withdrawAndHoldRune,
+            change: withdrawAndHoldRune - amountInvested
+        },
+        withdrawAndHoldAsset: {
+            totalValue: withdrawAndHoldAsset,
+            change: withdrawAndHoldAsset - amountInvested
+        },
+        withdrawAndHoldBoth: {
+            totalValue: withdrawAndHoldBoth,
+            change: withdrawAndHoldBoth - amountInvested
+        }
+    };
 };

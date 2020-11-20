@@ -146,5 +146,3 @@ _assets.sort((a, b) => {
         return 0;
     }
 });
-
-const ASSETS = _assets;

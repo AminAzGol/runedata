@@ -1,30 +1,17 @@
+var _prices = null;
+
 var _placeholderText = 'Pick your options below, then hit "Submit" to continue.';
 var _assetName = null;
 var _userData = null;
 var _plBreakdown = null;
+var _projection = null;
+var _projectionBreakdown = null;
 
 var _simulateTotalValueChart = null;
 var _simulatePoolRewardsChart = null;
 var _simulatePLBreakdownChart = null;
-
-const showSpinner = (text) => {
-    $('#spinnerContainer').fadeIn();
-};
-
-const hideSpinner = () => {
-    $('#spinnerContainer').fadeOut();
-};
-
-const generatePoolOptions = (select) => {
-    for (asset of ASSETS) {
-        select.append(new Option(`${asset.name} (${asset.chain}.${asset.symbol})`, `${asset.chain}.${asset.symbol}`));
-    }
-};
-
-const setActiveToggle = (toggle) => {
-    $('#totalValueToggle').parent().parent().find('.nav-link').removeClass('active');
-    toggle.addClass('active');
-};
+var _predictValueProjectionChart = null;
+var _predictProjectionBreakdownChart = null;
 
 const getSimulateTotalValueText = () => {
     if (!_userData) {
@@ -101,6 +88,37 @@ const getSimulatePLBreakdownText = () => {
     `;
 };
 
+const getValueProjectionText = () => {
+    if (!_projection) {
+        return _placeholderText;
+    }
+};
+
+const getProjectionBreakdownText = () => {
+    if (!_projectionBreakdown) {
+        return _placeholderText;
+    }
+};
+
+const showSpinner = (text) => {
+    $('#spinnerContainer').fadeIn();
+};
+
+const hideSpinner = () => {
+    $('#spinnerContainer').fadeOut();
+};
+
+const generatePoolOptions = (select) => {
+    for (asset of _assets) {
+        select.append(new Option(`${asset.name} (${asset.chain}.${asset.symbol})`, `${asset.chain}.${asset.symbol}`));
+    }
+};
+
+const setActiveToggle = (toggle) => {
+    toggle.parent().parent().find('.nav-link').removeClass('active');
+    toggle.addClass('active');
+};
+
 $(async () => {
     $('#simulateBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
@@ -141,6 +159,22 @@ $(async () => {
         $('#simulatePoolRewardsCanvas').hide();
         $('#simulatePLBreakdownCanvas').show();
         $('#simulateResultText').html(getSimulatePLBreakdownText());
+    });
+
+    $('#valueProjectionToggle').click(function (event) {
+        event.preventDefault();
+        setActiveToggle($(this));
+        $('#predictValueProjectionCanvas').show();
+        $('#predictProjectionBreakdownCanvas').hide();
+        $('#predictResultText').html(getValueProjectionText());
+    });
+
+    $('#projectionBreakdownToggle').click(function (event) {
+        event.preventDefault();
+        setActiveToggle($(this));
+        $('#predictValueProjectionCanvas').hide();
+        $('#predictProjectionBreakdownCanvas').show();
+        $('#predictResultText').html(getProjectionBreakdownText());
     });
 
     $('#simulateSubmitBtn').click((event) => {
@@ -187,9 +221,26 @@ $(async () => {
             $('#poolPredict').val(),
             $('#timespanForAPY').val(),
             parseFloat($('#priceTargetRune').val()),
-            parseFloat($('#priceTargetAsset').val())
+            parseFloat($('#priceTargetAsset').val()),
+            _prices
         )
-        .then((valueProjection) => {
+        .then((projection) => {
+            _assetName = $('#poolPredict').val().split('.')[1].split('-')[0];
+            _projection = projection;
+            console.log(projection);
+
+            if (_predictValueProjectionChart) {
+                _predictValueProjectionChart.destroy();
+            }
+            if (_predictProjectionBreakdownChart) {
+                _predictProjectionBreakdownChart.destroy();
+            }
+
+            _predictValueProjectionChart = plotValueProjection($('#predictValueProjectionCanvas'), projection, _assetName);
+            _predictProjectionBreakdownCanvas = plotProjectionBreakdown(projection, _assetName);
+
+            $('#valueProjectionToggle').trigger('click');
+            $('#predictChartOverlay').hide();
             hideSpinner();
         });
     });
@@ -208,22 +259,29 @@ $(async () => {
     fitCanvasToContainer($('#simulatePLBreakdownCanvas')[0]);
     drawPlaceholderImage($('#simulatePLBreakdownCanvas')[0], 'images/simulatePLBreakdownPlaceholder.png');
 
+    fitCanvasToContainer($('#predictValueProjectionCanvas')[0]);
+    drawPlaceholderImage($('#predictValueProjectionCanvas')[0], 'images/predictValueProjectionPlaceholder.png');
+
+    fitCanvasToContainer($('#predictProjectionBreakdownCanvas')[0]);
+    // drawPlaceholderImage($('#predictProjectionBreakdownCanvas')[0], 'images/predictProjectionBreakdownPlaceholder.png');
+
     // Default page to simulate, total page on load
     $('#simulateBtn').trigger('click');
     $('#totalValueToggle').trigger('click');
+    $('#valueProjectionToggle').trigger('click');
 
     // Fetch asset prices
-    const PRICES = await getCurrentPrices(ASSETS);
+    _prices = await getCurrentPrices(_assets);
 
     var poolPredict = $('#poolPredict');
     var priceTargetRune = $('#priceTargetRune');
     var priceTargetAsset = $('#priceTargetAsset');
 
-    priceTargetRune.val(_formatPrice(PRICES['RUNE']));
-    priceTargetAsset.val(_formatPrice(PRICES['BNB.BNB']));
+    priceTargetRune.val(_formatPrice(_prices['RUNE']));
+    priceTargetAsset.val(_formatPrice(_prices[`${_assets[0].chain}.${_assets[0].symbol}`]));
 
     poolPredict.change(() => {
-        priceTargetAsset.val(_formatPrice(PRICES[poolPredict.val()]));
+        priceTargetAsset.val(_formatPrice(_prices[poolPredict.val()]));
     });
 
     hideSpinner();

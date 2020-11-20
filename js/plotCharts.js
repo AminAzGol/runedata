@@ -101,7 +101,7 @@ const plotTotalValue = (canvas, userData, assetName = 'asset') => {
                 }],
                 yAxes: [{
                     ticks: {
-                        callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        callback: (value, index, values) => (value < 0 ? '–' : '') + '$' + Math.abs(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                     }
                 }]
             },
@@ -202,6 +202,16 @@ const plotPoolRewards = (canvas, userData) => {
     return chart;
 };
 
+
+const _getYRangeForBarChart = (data) => {
+    var max = Math.max(...data);
+    var min = Math.min(...data);
+    var range = max - min;
+    var ymax = max + 0.2 * range;
+    var ymin = Math.min(min, 0) - 0.2 * range;
+    return { ymax, ymin };
+};
+
 const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
     _clearCanvas(canvas);
 
@@ -212,11 +222,7 @@ const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
         plBreakdown.impermLoss.value.toFixed(2),
         plBreakdown.total.value.toFixed(2)
     ];
-    var max = Math.max(...data);
-    var min = Math.min(...data);
-    var range = max - min;
-    var ymax = max + 0.1 * range;
-    var ymin = Math.min(min, 0) - 0.1 * range;
+    var { ymax, ymin } = _getYRangeForBarChart(data);
 
     var chart = new Chart(canvas, {
         type: 'bar',
@@ -245,9 +251,7 @@ const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
             responsive: true,
             maintainAspectRatio: false,
             // https://stackoverflow.com/questions/42556835/show-values-on-top-of-bars-in-chart-js
-            hover: {
-                animationDuration: 0
-            },
+            hover: { animationDuration: 0 },
             animation: {
                 duration: 1,
                 onComplete: function() {
@@ -276,21 +280,97 @@ const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
                     ticks: {
                         max: ymax.toFixed(0),
                         min: ymin.toFixed(0),
-                        callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                        callback: (value, index, values) => (value < 0 ? '–' : '+') + '$' + Math.abs(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
                     },
                     gridLines:{
                         zeroLineColor: 'black'
                     }
                 }]
             },
-            legend: {
-                display: false
-            },
-            tooltips: {
-                enabled: false
-            }
+            legend: { display: false },
+            tooltips: { enabled: false }
         }
     });
 
     return chart;
+};
+
+const _roundToZeroIfSmall = (x) => Math.abs(x) < 1 ? 0 : x;
+
+const plotValueProjection = (canvas, projection, assetName = 'asset') => {
+    _clearCanvas(canvas);
+
+    var data = [
+        _roundToZeroIfSmall(projection.keepProvidingLiquidity.change),
+        _roundToZeroIfSmall(projection.withdrawAndHoldRune.change),
+        _roundToZeroIfSmall(projection.withdrawAndHoldAsset.change),
+        _roundToZeroIfSmall(projection.withdrawAndHoldBoth.change),
+    ];
+    var { ymax, ymin } = _getYRangeForBarChart(data);
+
+    var chart = new Chart(canvas, {
+        type: 'bar',
+        data: {
+            labels: [
+                'keep providing liquidity',
+                'withdraw and hold RUNE',
+                `withdraw and hold ${assetName}`,
+                'withdraw and hold both',
+            ],
+            datasets: [{
+                data,
+                backgroundColor: ['red', 'teal', 'orange', 'blue'],
+                borderColor: 'black',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            hover: { animationDuration: 0 },
+            animation: {
+                duration: 1,
+                onComplete: function() {
+                  var chartInstance = this.chart,
+                    ctx = chartInstance.ctx;
+
+                  ctx.font = Chart.helpers.fontString(Chart.defaults.global.defaultFontSize, Chart.defaults.global.defaultFontStyle, Chart.defaults.global.defaultFontFamily);
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'bottom';
+
+                  this.data.datasets.forEach(function(dataset, i) {
+                    var meta = chartInstance.controller.getDatasetMeta(i);
+                    meta.data.forEach(function(bar, index) {
+                      var data = dataset.data[index];
+                      ctx.fillText(_formatPriceChange(data), bar._model.x, bar._model.y + _getYOffset(data));
+                    });
+                  });
+                }
+            },
+            scales: {
+                xAxes: [{
+                    display: true,
+                    scaleLabel: { display: true }
+                }],
+                yAxes: [{
+                    ticks: {
+                        max: ymax.toFixed(0),
+                        min: ymin.toFixed(0),
+                        callback: (value, index, values) => (value < 0 ? '–' : '+') + '$' + Math.abs(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    },
+                    gridLines:{
+                        zeroLineColor: 'black'
+                    }
+                }]
+            },
+            legend: { display: false },
+            tooltips: { enabled: false }
+        }
+    });
+
+    return chart;
+};
+
+const plotProjectionBreakdown = (projection, assetName) => {
+    //pass
 };
