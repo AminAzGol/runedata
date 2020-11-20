@@ -1,10 +1,11 @@
+var _placeholderText = 'Pick your options below, then hit "Submit" to continue.';
+var _assetName = null;
+var _userData = null;
+var _plBreakdown = null;
+
 var _simulateTotalValueChart = null;
 var _simulatePoolRewardsChart = null;
 var _simulatePLBreakdownChart = null;
-
-const _formatPrice = (p) => {
-    return p.toFixed(p >= 1 ? 2 : 5);
-}
 
 const showSpinner = (text) => {
     $('#spinnerContainer').fadeIn();
@@ -25,11 +26,82 @@ const setActiveToggle = (toggle) => {
     toggle.addClass('active');
 };
 
+const getSimulateTotalValueText = () => {
+    if (!_userData) {
+        return _placeholderText;
+    }
+
+    var totalValue = _userData[_userData.length - 1].totalValue;
+    var precentChange = (totalValue / _userData[0].totalValue - 1);
+
+    var totalValueIfHoldRune = _userData[_userData.length - 1].totalValueIfHoldRune;
+    var totalValueIfHoldRuneVsLP = (totalValueIfHoldRune / totalValue - 1);
+
+    var totalValueIfHoldAsset = _userData[_userData.length - 1].totalValueIfHoldAsset;
+    var totalValueIfHoldAssetVsLP = (totalValueIfHoldAsset / totalValue - 1);
+
+    return `
+        The current value of your investment is <b>${_formatTotalValue(totalValue)}</b>
+        (${_formatPercentChange(precentChange)})
+        <br>
+        If you had passively held <b>RUNE</b>, you would have <b>${_formatTotalValue(totalValueIfHoldRune)}</b>
+        (${_formatPercentChange(totalValueIfHoldRuneVsLP)} vs LP)
+        <br>
+        If you had passively held <b>${_assetName}</b>, you would have <b>${_formatTotalValue(totalValueIfHoldAsset)}</b>
+        (${_formatPercentChange(totalValueIfHoldAssetVsLP)} vs LP)
+    `;
+};
+
+const getSimulatePoolRewardsText = () => {
+    if (!_userData) {
+        return _placeholderText;
+    }
+
+    var feeAccrued = _userData[_userData.length - 1].feeAccrued;
+    var impermLoss = _userData[_userData.length - 1].impermLoss;
+    var totalGains = feeAccrued + impermLoss;
+
+    var startTime = _userData[0].timestamp;
+    var endTime = _userData[_userData.length - 1].timestamp;
+    var apy = totalGains * 365 * 24 * 60 * 60 / (endTime - startTime)
+
+    return `
+        <p>
+            Compared to passively holding 50:50 <b>RUNE</b> & <b>${_assetName}</b>, you gained
+            <b>${_formatPercentChange(feeAccrued, false)}</b> from fees & rewards, lost
+            <b>${_formatPercentChange(impermLoss, false)}</b> due to impermanent loss (IL).
+            Overall, LP ${_outOrUnderperform(totalGains)} HODL by <b>${_formatPercentChange(totalGains, false)}</b>.
+        </p>
+        Extrapolating to a year, the fee APY (not including IL) is approximately <b>${_formatPercentChange(apy)}</b>.
+    `;
+};
+
+const getSimulatePLBreakdownText = () => {
+    if (!_plBreakdown) {
+        return _placeholderText;
+    }
+    return `
+        <p>
+            You ${_gainOrLoss(_plBreakdown.runeMovement.value)} <b>${_formatTotalValue(_plBreakdown.runeMovement.value)}</b>
+            (<b>${_formatPercentChange(_plBreakdown.runeMovement.percentage)}</b>) due to <b>RUNE</b> price going
+            ${_upOrDown(_plBreakdown.runeMovement.value)}, and ${_gainOrLoss(_plBreakdown.assetMovement.value)}
+            <b>${_formatTotalValue(_plBreakdown.assetMovement.value)}</b> (<b>${_formatPercentChange(_plBreakdown.assetMovement.percentage)}</b>)
+            due to <b>${_assetName}</b> going ${_upOrDown(_plBreakdown.assetMovement.value)}.
+        </p>
+        <p>
+            You earned <b>${_formatTotalValue(_plBreakdown.fees.value)}</b> (<b>${_formatPercentChange(_plBreakdown.fees.percentage)}</b>)
+            from fees & rewards, and lost <b>${_formatTotalValue(_plBreakdown.impermLoss.value)}</b>
+            (<b>${_formatPercentChange(_plBreakdown.impermLoss.percentage)}</b>) due to impermanent loss.
+        </p>
+        Overall, you are ${_upOrDown(_plBreakdown.total.value)} <b>${_formatTotalValue(_plBreakdown.total.value)}</b>
+        (<b>${_formatPercentChange(_plBreakdown.total.percentage)}</b>) compared to your initial investment.
+    `;
+};
+
 $(async () => {
     $('#simulateBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#predictBtn').removeClass('btn-primary').addClass('btn-outline-primary');
-
         $('#simulateContainer').show();
         $('#predictContainer').hide();
     });
@@ -37,7 +109,6 @@ $(async () => {
     $('#predictBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#simulateBtn').removeClass('btn-primary').addClass('btn-outline-primary');
-
         $('#simulateContainer').hide();
         $('#predictContainer').show();
     });
@@ -48,6 +119,7 @@ $(async () => {
         $('#simulateTotalValueCanvas').show();
         $('#simulatePoolRewardsCanvas').hide();
         $('#simulatePLBreakdownCanvas').hide();
+        $('#simulateResultText').html(getSimulateTotalValueText());
     });
 
     $('#poolRewardsToggle').click(function (event) {
@@ -56,6 +128,7 @@ $(async () => {
         $('#simulateTotalValueCanvas').hide();
         $('#simulatePoolRewardsCanvas').show();
         $('#simulatePLBreakdownCanvas').hide();
+        $('#simulateResultText').html(getSimulatePoolRewardsText());
     });
 
     $('#PLBreakdownToggle').click(function (event) {
@@ -64,6 +137,7 @@ $(async () => {
         $('#simulateTotalValueCanvas').hide();
         $('#simulatePoolRewardsCanvas').hide();
         $('#simulatePLBreakdownCanvas').show();
+        $('#simulateResultText').html(getSimulatePLBreakdownText());
     });
 
     $('#simulateSubmitBtn').click((event) => {
@@ -75,6 +149,10 @@ $(async () => {
 
         showSpinner();
         getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
+            _assetName = $('#poolSimulate').val().split('.')[1].split('-')[0];
+            _userData = userData;
+            _plBreakdown = calculatePLBreakdown(userData);
+
             if (_simulateTotalValueChart) {
                 _simulateTotalValueChart.destroy();
             }
@@ -85,9 +163,9 @@ $(async () => {
                 _simulatePLBreakdownChart.destroy();
             }
 
-            _simulateTotalValueChart = plotTotalValue($('#simulateTotalValueCanvas'), userData);
+            _simulateTotalValueChart = plotTotalValue($('#simulateTotalValueCanvas'), userData, _assetName);
             _simulatePoolRewardsChart = plotPoolRewards($('#simulatePoolRewardsCanvas'), userData);
-            _simulatePLBreakdownChart = plotPLBreakdown($('#simulatePLBreakdownCanvas'), calculatePLBreakdown(userData));
+            _simulatePLBreakdownChart = plotPLBreakdown($('#simulatePLBreakdownCanvas'), _plBreakdown, _assetName);
 
             $('#totalValueToggle').trigger('click');
             $('#simulateChartOverlay').hide();

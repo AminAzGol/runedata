@@ -29,20 +29,11 @@ const _barColor = (value) => {
     return value >= 0 ? 'green' : 'red';
 };
 
-const _formatPriceChange = (value) => {
-    if (value >= 0) {
-        var sign = '+';
-    } else {
-        var sign = '–';
-    }
-    return sign + '$' + Math.abs(value).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-}
-
 const _getYOffset = (value) => {
     return value >= 0 ? -5 : +22;
 };
 
-const plotTotalValue = (canvas, userData) => {
+const plotTotalValue = (canvas, userData, assetName = 'asset') => {
     var totalValueLP = [];
     var totalValueIfHoldRune = [];
     var totalValueIfHoldAsset = [];
@@ -77,25 +68,25 @@ const plotTotalValue = (canvas, userData) => {
                 data: totalValueLP,
                 fill: false,
                 borderColor: 'red',
-                borderWidth: 1.5
+                borderWidth: 2
             }, {
                 label: 'hold RUNE',
                 data: totalValueIfHoldRune,
                 fill: false,
                 borderColor: 'teal',
-                borderWidth: 1.5
+                borderWidth: 2
             }, {
-                label: 'hold asset',
+                label: `hold ${assetName}`,
                 data: totalValueIfHoldAsset,
                 fill: false,
                 borderColor: 'orange',
-                borderWidth: 1.5
+                borderWidth: 2
             }, {
                 label: 'hold both',
                 data: totalValueIfHoldBoth,
                 fill: false,
                 borderColor: 'blue',
-                borderWidth: 1.5
+                borderWidth: 2
             }]
         },
         options: {
@@ -155,19 +146,19 @@ const plotPoolRewards = (canvas, userData) => {
                 data: feeAccrued,
                 fill: false,
                 borderColor: 'blue',
-                borderWidth: 1.5
+                borderWidth: 2
             }, {
                 label: 'impermanent loss',
                 data: impermLoss,
                 fill: false,
-                borderColor: 'orange',
-                borderWidth: 1.5
+                borderColor: 'red',
+                borderWidth: 2
             }, {
                 label: 'total gains vs HODL',
                 data: totalGains,
                 fill: false,
-                borderColor: 'red',
-                borderWidth: 1.5
+                borderColor: 'magenta',
+                borderWidth: 2
             }]
         },
         options: {
@@ -182,7 +173,7 @@ const plotPoolRewards = (canvas, userData) => {
                 }],
                 yAxes: [{
                     ticks: {
-                        callback: (value, index, values) => value + '%'
+                        callback: (value, index, values) => (value >= 0 ? '+' : '–') + Math.abs(value) + '%'
                     }
                 }]
             },
@@ -197,7 +188,7 @@ const plotPoolRewards = (canvas, userData) => {
     return chart;
 };
 
-const plotPLBreakdown = (canvas, plBreakdown) => {
+const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
     _clearCanvas(canvas);
 
     var data = [
@@ -217,8 +208,8 @@ const plotPLBreakdown = (canvas, plBreakdown) => {
         type: 'bar',
         data: {
             labels: [
-                'RUNE price',
-                'asset price',
+                'RUNE price movement',
+                `${assetName} price movement`,
                 'fees & rewards',
                 'impermanent loss',
                 'total profit'
