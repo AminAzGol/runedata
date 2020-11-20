@@ -63,7 +63,9 @@ const getSimulatePoolRewardsText = () => {
 
     var startTime = _userData[0].timestamp;
     var endTime = _userData[_userData.length - 1].timestamp;
-    var apy = totalGains * 365 * 24 * 60 * 60 / (endTime - startTime)
+
+    var apyFeeOnly = feeAccrued * 365 * 24 * 60 * 60 / (endTime - startTime);
+    var apyTotal = totalGains * 365 * 24 * 60 * 60 / (endTime - startTime)
 
     return `
         <p>
@@ -72,7 +74,8 @@ const getSimulatePoolRewardsText = () => {
             <b>${_formatPercentChange(impermLoss, false)}</b> due to impermanent loss (IL).
             Overall, LP ${_outOrUnderperform(totalGains)} HODL by <b>${_formatPercentChange(totalGains, false)}</b>.
         </p>
-        Extrapolating to a year, the fee APY (not including IL) is approximately <b>${_formatPercentChange(apy)}</b>.
+        Extrapolating to a year, the APY is approximately <b>${_formatPercentChange(apyFeeOnly)}</b> (fees only)
+        or <b>${_formatPercentChange(apyTotal)}</b> (fees + IL).
     `;
 };
 
