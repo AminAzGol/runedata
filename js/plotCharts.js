@@ -109,7 +109,18 @@ const plotTotalValue = (canvas, userData, assetName = 'asset') => {
                 point: {
                     radius: 0
                 }
-            }
+            },
+            // https://stackoverflow.com/questions/42691873/draw-horizontal-line-on-chart-in-chart-js-on-v2
+            // annotation: {
+            //     annotations: [{
+            //         type: 'line',
+            //         mode: 'horizontal',
+            //         scaleID: 'y-axis-0',
+            //         value: userData[0].totalValue,
+            //         borderColor: 'black',
+            //         borderWidth: 1
+            //     }]
+            // }
         }
     });
 
@@ -174,6 +185,9 @@ const plotPoolRewards = (canvas, userData) => {
                 yAxes: [{
                     ticks: {
                         callback: (value, index, values) => (value >= 0 ? '+' : '–') + Math.abs(value) + '%'
+                    },
+                    gridLines:{
+                        zeroLineColor: 'black'
                     }
                 }]
             },
