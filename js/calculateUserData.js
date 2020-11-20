@@ -14,25 +14,29 @@ const getCurrentPrices = async (assets) => {
     return prices;
 };
 
+const _getAssetDataWithPoolUnits = async (pool, from, to) => {
+    var assetData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=${pool}&interval=hour&from=${from}&to=${to}`);
+    var assetDataCurrent = await $.get(`https://chaosnet-midgard.bepswap.com/v1/pools/detail?asset=${pool}`);
+
+    assetData[assetData.length - 1].poolUnits = assetDataCurrent[0].poolUnits;
+    for (i = assetData.length - 1; i > 0; i--) {
+        assetData[i - 1].poolUnits = assetData[i].poolUnits - assetData[i].unitsChanges;
+    }
+
+    return assetData
+};
+
 const getPastSimulation = async (amountInvested, dateInvested, pool) => {
     var from = Math.floor((new Date(dateInvested)).getTime() / 1000);
     var to = Math.floor(Date.now() / 1000);
 
     var busdData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=BNB.BUSD-BD1&interval=hour&from=${from}&to=${to}`);
-    var assetData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=${pool}&interval=hour&from=${from}&to=${to}`);
-    var assetDataCurrent = await $.get(`https://chaosnet-midgard.bepswap.com/v1/pools/detail?asset=${pool}`);
+    var assetData = await _getAssetDataWithPoolUnits(pool, from, to);
 
     // Calculate RUNE and asset prices
     for (i = 0; i < assetData.length; i++) {
         assetData[i].runePrice = 1 / busdData[i].price;
         assetData[i].assetPrice = assetData[i].price * assetData[i].runePrice;
-    }
-
-    // Calculate amount of pool units at each timestamp
-    assetData[assetData.length - 1].poolUnits = assetDataCurrent[0].poolUnits;
-
-    for (i = assetData.length - 1; i > 0; i--) {
-        assetData[i - 1].poolUnits = assetData[i].poolUnits - assetData[i].unitsChanges;
     }
 
     // Calculate share price at the time of investment
@@ -131,4 +135,41 @@ const calculatePLBreakdown = (userData) => {
             percentage: total / start.totalValue
         }
     };
+};
+
+const _calculateFeeAPY = async (pool, timespan) => {
+    switch (timespan) {
+        case '3 days':
+            hours = 3 * 24;
+        case '7 days':
+            hours = 7 * 24;
+        case '14 days':
+            hours = 14 * 24;
+        case '30 days':
+            hours = 30 * 24;
+    }
+
+    var to = Math.floor(Date.now() / 1000);
+    var from = to - hours * 60 * 60;
+    var assetData = await _getAssetDataWithPoolUnits(pool, from, to);
+
+    var kValue = {
+        start: assetData[0].assetDepth * assetData[0].runeDepth / (assetData[0].poolUnits ** 2),
+        end: assetData[assetData.length - 1].assetDepth * assetData[assetData.length - 1].runeDepth / (assetData[assetData.length - 1].poolUnits ** 2)
+    };
+    var roi = 0.5 * (kValue.end / kValue.start - 1);
+    var apy = (1 + roi) ** (365 * 24 / hours) - 1;
+    console.log(apy);
+};
+
+const calculateValueProjection = async (amountInvested, dateToPredict,
+                                        pool, timespanForAPY,
+                                        priceTargetRune, priceTargetAsset) => {
+    console.log({
+        amountInvested, dateToPredict,
+        pool, timespanForAPY,
+        priceTargetRune, priceTargetAsset
+    });
+
+    return null;
 };

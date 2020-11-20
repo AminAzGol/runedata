@@ -103,16 +103,47 @@
     </div>
 
     <div id="predictContainer">
+      <div class="container p-2 max-width-1200px">
+        <div class="embed-responsive embed-responsive-21by9 w-100 mb-2">
+          <canvas id="predictValueProjectionCanvas" class="embed-responsive-item"></canvas>
+          <canvas id="predictProjectionBreakdownCanvas" class="embed-responsive-item"></canvas>
+          <div id="predictChartOverlay" class="overlay">
+            <div class="overlay-text">
+              Pick your options at the bottom fo the page, then hit "Submit" to continue.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container p-2 max-width-800px">
+        <div class="card w-100 mb-4" id="predictResultCard">
+          <div class="card-header">
+            <ul class="nav nav-pills card-header-pills align-items-center">
+              <li class="nav-item ml-3 mr-auto align-text-bottom">
+                Analysis
+              </li>
+              <li class="nav-item ml-auto">
+                <a class="nav-link active" id="valueProjectionToggle" href="">Total value projection</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="projectionBreakdownToggle" href="">Projection breakdown</a>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body pl-4" id="predictResultText"></div>
+        </div>
+      </div>
+
       <div class="container p-2 max-width-800px">
         <form>
           <div class="form-row">
             <div class="form-group col-md-4">
-              <label for="amountInvestedPredict">Amount currently invested</label>
+              <label for="amountPredict">Amount currently invested</label>
               <div class="input-group">
                 <div class="input-group-prepend">
                   <span class="input-group-text">$</span>
                 </div>
-                <input type="number" class="form-control" id="amountInvestedPredict" value="10000.00">
+                <input type="number" class="form-control" id="amountPredict" value="10000.00">
               </div>
             </div>
             <div class="form-group col-md-6 mb-0">
@@ -122,16 +153,16 @@
           </div>
           <div class="form-row">
             <div class="form-group col-md-4">
-              <label for="datePredict">Predict result on...</label>
-              <input type="date" class="form-control" id="datePredict">
+              <label for="dateToPredict">Predict result on...</label>
+              <input type="date" class="form-control" id="dateToPredict">
             </div>
             <div class="form-group col-md-4 mb-0">
-              <label for="poolSimulate">Use average ROI of the last...</label>
-              <select id="poolSimulate" class="form-control">
-                <option value="3days">3 days</option>
-                <option value="7days">7 days</option>
-                <option value="14days">14 days</option>
-                <option value="30days">30 days</option>
+              <label for="timespanForAPY">Use average ROI of the last...</label>
+              <select id="timespanForAPY" class="form-control">
+                <option value="3 days">3 days</option>
+                <option value="7 days">7 days</option>
+                <option value="14 days">14 days</option>
+                <option value="30 days">30 days</option>
               </select>
             </div>
           </div>

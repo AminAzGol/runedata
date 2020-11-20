@@ -145,13 +145,14 @@ $(async () => {
 
     $('#simulateSubmitBtn').click((event) => {
         event.preventDefault();
-
-        var amountInvested = parseFloat($('#amountSimulate').val());
-        var dateInvested = $('#dateSimulate').val();
-        var pool = $('#poolSimulate').val();
-
         showSpinner();
-        getPastSimulation(amountInvested, dateInvested, pool).then((userData) => {
+
+        getPastSimulation(
+            parseFloat($('#amountSimulate').val()),
+            $('#dateSimulate').val(),
+            $('#poolSimulate').val()
+        )
+        .then((userData) => {
             _assetName = $('#poolSimulate').val().split('.')[1].split('-')[0];
             _userData = userData;
             _plBreakdown = calculatePLBreakdown(userData);
@@ -172,6 +173,23 @@ $(async () => {
 
             $('#totalValueToggle').trigger('click');
             $('#simulateChartOverlay').hide();
+            hideSpinner();
+        });
+    });
+
+    $('#predictSubmitBtn').click((event) => {
+        event.preventDefault();
+        showSpinner();
+
+        calculateValueProjection(
+            parseFloat($('#amountPredict').val()),
+            $('#dateToPredict').val(),
+            $('#poolPredict').val(),
+            $('#timespanForAPY').val(),
+            parseFloat($('#priceTargetRune').val()),
+            parseFloat($('#priceTargetAsset').val())
+        )
+        .then((valueProjection) => {
             hideSpinner();
         });
     });
