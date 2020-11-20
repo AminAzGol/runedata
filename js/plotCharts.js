@@ -33,7 +33,7 @@ const _formatPriceChange = (value) => {
     if (value >= 0) {
         var sign = '+';
     } else {
-        var sign = '-';
+        var sign = '–';
     }
     return sign + '$' + Math.abs(value).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
@@ -240,12 +240,12 @@ const plotPLBreakdown = (canvas, plBreakdown) => {
             responsive: true,
             maintainAspectRatio: false,
             // https://stackoverflow.com/questions/42556835/show-values-on-top-of-bars-in-chart-js
-            "hover": {
-                "animationDuration": 0
+            hover: {
+                animationDuration: 0
             },
-            "animation": {
-                "duration": 1,
-                "onComplete": function() {
+            animation: {
+                duration: 1,
+                onComplete: function() {
                   var chartInstance = this.chart,
                     ctx = chartInstance.ctx;
 
@@ -272,6 +272,9 @@ const plotPLBreakdown = (canvas, plBreakdown) => {
                         max: ymax.toFixed(0),
                         min: ymin.toFixed(0),
                         callback: (value, index, values) => '$' + value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+                    },
+                    gridLines:{
+                        zeroLineColor: 'black'
                     }
                 }]
             },
