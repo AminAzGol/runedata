@@ -123,6 +123,7 @@ $(async () => {
 
             $('#simulateTotalValueToggle').trigger('click');
             $('#simulateChartOverlay').hide();
+            $('#simulateContainer').find('canvas').removeClass('blur');
             hideSpinner();
         });
     });
@@ -161,6 +162,7 @@ $(async () => {
 
             $('#predictTotalValueToggle').trigger('click');
             $('#predictChartOverlay').hide();
+            $('#predictContainer').find('canvas').removeClass('blur');
             hideSpinner();
         });
     });

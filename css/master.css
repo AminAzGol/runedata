@@ -43,7 +43,7 @@ footer {
     height: 100%;
     width: 100%;
     background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(6px);
+    /* backdrop-filter: blur(6px); */ /* not supported by Firefox!! */
 }
 
 .overlay-text {
@@ -56,6 +56,10 @@ footer {
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
     text-align: center;
+}
+
+.blur {
+    filter: blur(6px);
 }
 
 /* https://stackoverflow.com/questions/1853662 */
