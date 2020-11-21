@@ -28,6 +28,10 @@ footer {
     max-width: 600px;
 }
 
+.max-width-300px {
+    max-width: 300px;
+}
+
 .handwritten-font {
     font-family: 'Permanent Marker';
 }

@@ -39,15 +39,29 @@ $(async () => {
     $('#simulateBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#predictBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        $('#leaderboardBtn').removeClass('btn-primary').addClass('btn-outline-primary');
         $('#simulateContainer').show();
         $('#predictContainer').hide();
+        $('#leaderboardContainer').hide();
     });
 
     $('#predictBtn').click(function () {
-        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#simulateBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+        $('#leaderboardBtn').removeClass('btn-primary').addClass('btn-outline-primary');
         $('#simulateContainer').hide();
         $('#predictContainer').show();
+        $('#leaderboardContainer').hide();
+    });
+
+    $('#leaderboardBtn').click(function () {
+        $('#simulateBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        $('#predictBtn').removeClass('btn-primary').addClass('btn-outline-primary');
+        $(this).removeClass('btn-outline-primary').addClass('btn-primary');
+        $('#simulateContainer').hide();
+        $('#predictContainer').hide();
+        $('#leaderboardContainer').show();
+        alert('This feature has not been implemented yet!! You are seeing dummy data.');
     });
 
     $('#simulateTotalValueToggle').click(function (event) {
