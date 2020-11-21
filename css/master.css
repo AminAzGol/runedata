@@ -62,6 +62,13 @@ footer {
     filter: blur(6px);
 }
 
+/* https://github.blog/2008-12-19-github-ribbons/ */
+#forkMeRibbon {
+    position: absolute;
+    top: 0;
+    left: calc(100% - 149px);
+}
+
 /* https://stackoverflow.com/questions/1853662 */
 #spinnerContainer {
     width: 100%;
