@@ -208,7 +208,7 @@ const _getYRangeForBarChart = (data) => {
     var max = Math.max(...data);
     var min = Math.min(...data);
     var range = max - min;
-    var ymax = max + 0.2 * range;
+    var ymax = Math.max(max, 0) + 0.2 * range;
     var ymin = Math.min(min, 0) - 0.2 * range;
     return { ymax, ymin };
 };
