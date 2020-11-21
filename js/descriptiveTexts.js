@@ -68,7 +68,7 @@ const getSimulatePLBreakdownText = (PLBreakdown, assetName = 'asset') => {
       </p>
       <p>
         You earned <b>${_formatTotalValue(PLBreakdown.fees.value)}</b> (<b>${_formatPercentChange(PLBreakdown.fees.percentage)}</b>)
-        from fees & incentives, and lost <b>${_formatTotalValue(PLBreakdown.impermLoss.value)}</b>s
+        from fees & incentives, and lost <b>${_formatTotalValue(PLBreakdown.impermLoss.value)}</b>
         (<b>${_formatPercentChange(PLBreakdown.impermLoss.percentage)}</b>) due to impermanent loss.
       </p>
       Overall, you are ${_upOrDown(PLBreakdown.total.value)} <b>${_formatTotalValue(PLBreakdown.total.value)}</b>
