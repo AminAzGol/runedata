@@ -166,14 +166,16 @@ const _calculateFeeAPY = async (pool, timespan) => {
     return apy;
 };
 
-const calculateValueProjection = async (amountInvested, dateToPredict,
-                                        pool, timespanForAPY,
-                                        priceTargetRune, priceTargetAsset,
-                                        prices) => {
-    // Value if hold
+const calculatePrediction = async (amountInvested, dateToPredict,
+                                   pool, timespanForAPY,
+                                   priceTargetRune, priceTargetAsset,
+                                   prices) => {
+    // Prices of RUNE and asset
     if (!prices) {
         prices = await getCurrentPrices([pool]);
     }
+
+    // If HODL
     var withdrawAndHoldRune = amountInvested * priceTargetRune / prices['RUNE'];
     var withdrawAndHoldAsset = amountInvested * priceTargetAsset / prices[pool];
     var withdrawAndHoldBoth = 0.5 * (withdrawAndHoldRune + withdrawAndHoldAsset);
@@ -191,24 +193,27 @@ const calculateValueProjection = async (amountInvested, dateToPredict,
 
     // Total gains
     var total = fees + impermLoss;
+    var totalValue = withdrawAndHoldBoth * (1 + total);
 
-    return {
+    // If LP, start and end state
+    var start = {
+        runeBalance: 0.5 * amountInvested / prices['RUNE'],
+        assetBalance: 0.5 * amountInvested / prices[pool],
+        runePrice: prices['RUNE'],
+        assetPrice: prices[pool],
+        totalValue: amountInvested
+    };
+    var end = {
+        runeBalance: 0.5 * totalValue / priceTargetRune,
+        assetBalance: 0.5 * totalValue / priceTargetAsset,
+        runePrice: priceTargetRune,
+        assetPrice: priceTargetAsset
+    };
+
+    var prediction = {
         keepProvidingLiquidity: {
-            totalValue: withdrawAndHoldBoth * (1 + total),
-            change: withdrawAndHoldBoth * (1 + total) - amountInvested,
-            fees: {
-                amount: withdrawAndHoldBoth * fees,
-                percentage: fees,
-                apy: apy
-            },
-            impermLoss: {
-                amount: withdrawAndHoldBoth * impermLoss,
-                percentage: impermLoss
-            },
-            total: {
-                amount: withdrawAndHoldBoth * total,
-                percentage: total
-            }
+            totalValue: totalValue,
+            change: totalValue - amountInvested,
         },
         withdrawAndHoldRune: {
             totalValue: withdrawAndHoldRune,
@@ -223,4 +228,7 @@ const calculateValueProjection = async (amountInvested, dateToPredict,
             change: withdrawAndHoldBoth - amountInvested
         }
     };
+    var predictionBreakdown = calculatePLBreakdown([start, end]);
+
+    return { prediction, predictionBreakdown };
 };

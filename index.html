@@ -40,7 +40,7 @@
       <div class="container p-2 max-width-1200px">
         <div class="embed-responsive embed-responsive-21by9 w-100 mb-2">
           <canvas id="simulateTotalValueCanvas" class="embed-responsive-item"></canvas>
-          <canvas id="simulatePoolRewardsCanvas" class="embed-responsive-item"></canvas>
+          <canvas id="simulateFeesVsILCanvas" class="embed-responsive-item"></canvas>
           <canvas id="simulatePLBreakdownCanvas" class="embed-responsive-item"></canvas>
           <div id="simulateChartOverlay" class="overlay">
             <div class="overlay-text">
@@ -58,13 +58,13 @@
                 Analysis
               </li>
               <li class="nav-item ml-auto">
-                <a class="nav-link active" id="totalValueToggle" href="">Total value</a>
+                <a class="nav-link active" id="simulateTotalValueToggle" href="">Total value</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="poolRewardsToggle" href="">Pool rewards</a>
+                <a class="nav-link" id="simulateFeesVsILToggle" href="">Fees vs IL</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="PLBreakdownToggle" href="">P/L breakdown</a>
+                <a class="nav-link" id="simulatePLBreakdownToggle" href="">P/L breakdown</a>
               </li>
             </ul>
           </div>
@@ -105,8 +105,8 @@
     <div id="predictContainer">
       <div class="container p-2 max-width-1200px">
         <div class="embed-responsive embed-responsive-21by9 w-100 mb-2">
-          <canvas id="predictValueProjectionCanvas" class="embed-responsive-item"></canvas>
-          <canvas id="predictProjectionBreakdownCanvas" class="embed-responsive-item"></canvas>
+          <canvas id="predictTotalValueCanvas" class="embed-responsive-item"></canvas>
+          <canvas id="predictPLBreakdownCanvas" class="embed-responsive-item"></canvas>
           <div id="predictChartOverlay" class="overlay">
             <div class="overlay-text">
               Pick your options at the bottom fo the page, then hit "Submit" to continue.
@@ -123,10 +123,10 @@
                 Analysis
               </li>
               <li class="nav-item ml-auto">
-                <a class="nav-link active" id="valueProjectionToggle" href="">Total value projection</a>
+                <a class="nav-link active" id="predictTotalValueToggle" href="">Total value</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" id="projectionBreakdownToggle" href="">Projection breakdown</a>
+                <a class="nav-link" id="predictPLBreakdownToggle" href="">P/L breakdown</a>
               </li>
             </ul>
           </div>
@@ -211,6 +211,7 @@
     <script src="js/utils.js"></script>
     <script src="js/calculateUserData.js"></script>
     <script src="js/plotCharts.js"></script>
+    <script src="js/descriptiveTexts.js"></script>
     <script src="js/main.js"></script>
   </body>
 </html>

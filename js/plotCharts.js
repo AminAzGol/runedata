@@ -153,7 +153,7 @@ const plotPoolRewards = (canvas, userData) => {
         type: 'line',
         data: {
             datasets: [{
-                label: 'fee & rewards accrued',
+                label: 'fee & incentives accrued',
                 data: feeAccrued,
                 fill: false,
                 borderColor: 'blue',
@@ -202,6 +202,7 @@ const plotPoolRewards = (canvas, userData) => {
     return chart;
 };
 
+const _roundToZeroIfSmall = (x) => Math.abs(x) < 1 ? +0 : x;
 
 const _getYRangeForBarChart = (data) => {
     var max = Math.max(...data);
@@ -212,15 +213,15 @@ const _getYRangeForBarChart = (data) => {
     return { ymax, ymin };
 };
 
-const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
+const plotPLBreakdown = (canvas, PLBreakdown, assetName = 'asset') => {
     _clearCanvas(canvas);
 
     var data = [
-        plBreakdown.runeMovement.value.toFixed(2),
-        plBreakdown.assetMovement.value.toFixed(2),
-        plBreakdown.fees.value.toFixed(2),
-        plBreakdown.impermLoss.value.toFixed(2),
-        plBreakdown.total.value.toFixed(2)
+        _roundToZeroIfSmall(PLBreakdown.runeMovement.value.toFixed(2)),
+        _roundToZeroIfSmall(PLBreakdown.assetMovement.value.toFixed(2)),
+        _roundToZeroIfSmall(PLBreakdown.fees.value.toFixed(2)),
+        _roundToZeroIfSmall(PLBreakdown.impermLoss.value.toFixed(2)),
+        _roundToZeroIfSmall(PLBreakdown.total.value.toFixed(2))
     ];
     var { ymax, ymin } = _getYRangeForBarChart(data);
 
@@ -230,17 +231,17 @@ const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
             labels: [
                 'RUNE price movement',
                 `${assetName} price movement`,
-                'fees & rewards',
+                'fees & incentives',
                 'impermanent loss',
                 'total profit'
             ],
             datasets: [{
                 data,
                 backgroundColor: [
-                    _barColor(plBreakdown.runeMovement.value),
-                    _barColor(plBreakdown.assetMovement.value),
-                    _barColor(plBreakdown.fees.value),
-                    _barColor(plBreakdown.impermLoss.value),
+                    _barColor(PLBreakdown.runeMovement.value),
+                    _barColor(PLBreakdown.assetMovement.value),
+                    _barColor(PLBreakdown.fees.value),
+                    _barColor(PLBreakdown.impermLoss.value),
                     'magenta',
                 ],
                 borderColor: 'black',
@@ -295,16 +296,14 @@ const plotPLBreakdown = (canvas, plBreakdown, assetName = 'asset') => {
     return chart;
 };
 
-const _roundToZeroIfSmall = (x) => Math.abs(x) < 1 ? 0 : x;
-
-const plotValueProjection = (canvas, projection, assetName = 'asset') => {
+const plotPrediction = (canvas, prediction, assetName = 'asset') => {
     _clearCanvas(canvas);
 
     var data = [
-        _roundToZeroIfSmall(projection.keepProvidingLiquidity.change),
-        _roundToZeroIfSmall(projection.withdrawAndHoldRune.change),
-        _roundToZeroIfSmall(projection.withdrawAndHoldAsset.change),
-        _roundToZeroIfSmall(projection.withdrawAndHoldBoth.change),
+        _roundToZeroIfSmall(prediction.keepProvidingLiquidity.change),
+        _roundToZeroIfSmall(prediction.withdrawAndHoldRune.change),
+        _roundToZeroIfSmall(prediction.withdrawAndHoldAsset.change),
+        _roundToZeroIfSmall(prediction.withdrawAndHoldBoth.change),
     ];
     var { ymax, ymin } = _getYRangeForBarChart(data);
 
@@ -369,8 +368,4 @@ const plotValueProjection = (canvas, projection, assetName = 'asset') => {
     });
 
     return chart;
-};
-
-const plotProjectionBreakdown = (projection, assetName) => {
-    //pass
 };

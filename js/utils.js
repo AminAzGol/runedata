@@ -1,9 +1,14 @@
 const _outOrUnderperform = (val) => val >= 0 ? 'outperforms' : 'underperforms';
 const _upOrDown = (val) => val >= 0 ? 'up' : 'down';
-const _gainOrLoss = (val) => val >= 0 ? 'gained' : 'lost';
+const _gainOrLose = (val) => val >= 0 ? 'will gain' : 'will lose';
+const _gainedOrLost = (val) => val >= 0 ? 'gained' : 'lost';
 
 const _formatPrice = (p) => {
     return p.toFixed(p >= 1 ? 2 : 5);
+};
+
+const _formatTotalValue = (v) => {
+    return '$' + Math.abs(v).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
 const _formatPriceChange = (value) => {
@@ -15,8 +20,14 @@ const _formatPriceChange = (value) => {
     return sign + '$' + Math.abs(value).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
-const _formatTotalValue = (v) => {
-    return '$' + Math.abs(v).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const _formatTotalValueChange = (value) => {
+    if (value >= 0) {
+        var sign = '+';
+    } else {
+        var sign = '–';
+    }
+    color = value >= 0 ? 'green' : 'red';
+    return `<b style="color: ${color}">${sign}$` + Math.abs(value).toFixed(0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '</b>';
 };
 
 const _formatPercentChange = (pc, signed = true) => {
