@@ -18,8 +18,8 @@ const getCurrentPrices = async (assets) => {
     return prices;
 };
 
-const _getAssetDataWithPoolUnits = async (pool, from, to) => {
-    var assetData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=${pool}&interval=hour&from=${from}&to=${to}`);
+const _getAssetDataWithPoolUnits = async (pool, from, to, interval = 'hour') => {
+    var assetData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=${pool}&interval=${interval}&from=${from}&to=${to}`);
     var assetDataCurrent = await $.get(`https://chaosnet-midgard.bepswap.com/v1/pools/detail?asset=${pool}`);
 
     assetData[assetData.length - 1].poolUnits = assetDataCurrent[0].poolUnits;
@@ -30,12 +30,14 @@ const _getAssetDataWithPoolUnits = async (pool, from, to) => {
     return assetData
 };
 
-const getPastSimulation = async (amountInvested, dateInvested, pool) => {
-    var from = Math.floor((new Date(dateInvested)).getTime() / 1000);
-    var to = Math.floor(Date.now() / 1000);
+const getPastSimulation = async (amountInvested, dateInvested, pool, assetData = null, busdData = null) => {
+    if (!busdData || !assetData) {
+        var from = Math.floor((new Date(dateInvested)).getTime() / 1000);
+        var to = Math.floor(Date.now() / 1000);
 
-    var busdData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=BNB.BUSD-BD1&interval=hour&from=${from}&to=${to}`);
-    var assetData = await _getAssetDataWithPoolUnits(pool, from, to);
+        var busdData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=BNB.BUSD-BD1&interval=hour&from=${from}&to=${to}`);
+        var assetData = await _getAssetDataWithPoolUnits(pool, from, to);
+    }
 
     // Calculate RUNE and asset prices
     for (i = 0; i < assetData.length; i++) {
@@ -87,7 +89,6 @@ const getPastSimulation = async (amountInvested, dateInvested, pool) => {
             feeAccrued, impermLoss, totalGains
         };
     }
-
     return userData;
 };
 
@@ -231,4 +232,44 @@ const calculatePrediction = async (amountInvested, dateToPredict,
     var predictionBreakdown = calculatePLBreakdown([start, end]);
 
     return { prediction, predictionBreakdown };
+};
+
+const getAllAssetPerformances = async (since) => {
+    var from = Math.floor((new Date(since)).getTime() / 1000);
+    var to = Math.floor(Date.now() / 1000);
+
+    var busdData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=BNB.BUSD-BD1&interval=hour&from=${from}&to=${to}`);
+    var performances = [];
+
+    for (asset of _assets) {
+        pool = `${asset.chain}.${asset.symbol}`;
+        console.log(`Calculating performance: ${pool}`);
+        assetData = await _getAssetDataWithPoolUnits(pool, from, to);
+
+        assetPerformance = await getPastSimulation(
+            10000, since, pool, [
+                assetData[0],
+                assetData[assetData.length - 1]
+            ], [
+                busdData[0],
+                busdData[busdData.length - 1]
+        ]);
+
+        performances.push({
+            pool,
+            roi: assetPerformance[1].totalValue / assetPerformance[0].totalValue - 1,
+            feeAccrued: assetPerformance[1].feeAccrued,
+            impermLoss: assetPerformance[1].impermLoss
+        });
+    }
+
+    return performances;
+};
+
+const getBestsAndWorsts = (performances) => {
+    performances.sort((a, b) => a.roi < b.roi ? -1 : 1);  // Sort ascendingly by ROI
+    return {
+        bests: performances.slice(performances.length - 6, performances.length - 1).reverse(),
+        worsts: performances.slice(0, 5)
+    };
 };

@@ -24,6 +24,18 @@ const hideSpinner = () => {
     $('#spinnerContainer').fadeOut();
 };
 
+const showTooltip = (element, msg) => {
+    element.tooltip('hide')
+        .attr('data-original-title', msg)
+        .tooltip('show');
+};
+
+const hideToolTip = (element, timeout = 1000) => {
+    setTimeout(() => {
+        element.tooltip('hide');
+    }, timeout)
+};
+
 const generatePoolOptions = (select) => {
     for (asset of _assets) {
         select.append(new Option(`${asset.name} (${asset.chain}.${asset.symbol})`, `${asset.chain}.${asset.symbol}`));
@@ -33,6 +45,26 @@ const generatePoolOptions = (select) => {
 const setActiveToggle = (toggle) => {
     toggle.parent().parent().find('.nav-link').removeClass('active');
     toggle.addClass('active');
+};
+
+const displayBests = (bests) => {
+    for (i = 0; i < 5; i++) {
+        $(`#bestName${i}`).html(bests[i].pool.split('.')[1].split('-')[0]);
+        $(`#bestChain${i}`).html(bests[i].pool.split('.')[0]);
+        $(`#bestROI${i}`).html(_formatPercentChange(bests[i].roi));
+        $(`#bestFees${i}`).html(_formatPercentChange(bests[i].feeAccrued));
+        $(`#bestIL${i}`).html(_formatPercentChange(bests[i].impermLoss));
+    }
+};
+
+const displayWorsts = (worsts) => {
+    for (i = 0; i < 5; i++) {
+        $(`#worstName${i}`).html(worsts[i].pool.split('.')[1].split('-')[0]);
+        $(`#worstChain${i}`).html(worsts[i].pool.split('.')[0]);
+        $(`#worstROI${i}`).html(_formatPercentChange(worsts[i].roi));
+        $(`#worstFees${i}`).html(_formatPercentChange(worsts[i].feeAccrued));
+        $(`#worstIL${i}`).html(_formatPercentChange(worsts[i].impermLoss));
+    }
 };
 
 $(async () => {
@@ -61,7 +93,6 @@ $(async () => {
         $('#simulateContainer').hide();
         $('#predictContainer').hide();
         $('#leaderboardContainer').show();
-        alert('This feature has not been implemented yet!! You are seeing dummy data.');
     });
 
     $('#simulateTotalValueToggle').click(function (event) {
@@ -177,6 +208,22 @@ $(async () => {
             $('#predictTotalValueToggle').trigger('click');
             $('#predictChartOverlay').hide();
             $('#predictContainer').find('canvas').removeClass('blur');
+            hideSpinner();
+        });
+    });
+
+    $('#leaderboardSubmitBtn')
+    .tooltip({ placement: 'bottom' })
+    .click((event) => {
+        event.preventDefault();
+
+        showSpinner();
+        getAllAssetPerformances($('#leaderboardDate').val())
+        .then(getBestsAndWorsts)
+        .then((results) => {
+            var { bests, worsts } = results;
+            displayBests(bests);
+            displayWorsts(worsts);
             hideSpinner();
         });
     });
