@@ -41,3 +41,16 @@ const _formatPercentChange = (pc, signed = true) => {
     pc = pc.toFixed(pc < 10 ? 1 : 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     return `<b style="color: ${color}">${sign}${pc}%</b>`;
 };
+
+const parseQueryString = () => {
+    var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+    var args = {};
+
+    for(i = 0; i < hashes.length; i++) {
+        hash = hashes[i].split('=');
+        args[hash[0]] = hash[1];
+    }
+
+    console.log('parseQueryString: done!', args);
+    return args;
+};

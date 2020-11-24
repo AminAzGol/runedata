@@ -68,6 +68,10 @@ const displayWorsts = (worsts) => {
 };
 
 $(async () => {
+    //========================================
+    // Page selection buttons
+    //========================================
+
     $('#simulateBtn').click(function () {
         $(this).removeClass('btn-outline-primary').addClass('btn-primary');
         $('#predictBtn').removeClass('btn-primary').addClass('btn-outline-primary');
@@ -94,6 +98,10 @@ $(async () => {
         $('#predictContainer').hide();
         $('#leaderboardContainer').show();
     });
+
+    //========================================
+    // Functions for past simulation page
+    //========================================
 
     $('#simulateTotalValueToggle').click(function (event) {
         event.preventDefault();
@@ -122,6 +130,10 @@ $(async () => {
         $('#simulateResultText').html(getSimulatePLBreakdownText(_PLBreakdown, _assetName));
     });
 
+    //========================================
+    // Functions for future prediction page
+    //========================================
+
     $('#predictTotalValueToggle').click(function (event) {
         event.preventDefault();
         setActiveToggle($(this));
@@ -137,6 +149,10 @@ $(async () => {
         $('#predictPLBreakdownCanvas').show();
         $('#predictResultText').html(getPredictPLBreakdownText(_predictionBreakdown, _assetName));
     });
+
+    //========================================
+    // Submit buttons
+    //========================================
 
     $('#simulateSubmitBtn').click((event) => {
         event.preventDefault();
@@ -228,11 +244,15 @@ $(async () => {
         });
     });
 
-    // Generate options for pool selectors
+    //========================================
+    // Generate default page contents
+    //========================================
+
+    // Options for pool selectors
     generatePoolOptions($('#poolSimulate'));
     generatePoolOptions($('#poolPredict'));
 
-    // Draw placeholder images on canvas
+    // Placeholder images
     fitCanvasToContainer($('#simulateTotalValueCanvas')[0]);
     drawPlaceholderImage($('#simulateTotalValueCanvas')[0], 'images/simulateTotalValuePlaceholder.png');
 
@@ -248,11 +268,6 @@ $(async () => {
     fitCanvasToContainer($('#predictPLBreakdownCanvas')[0]);
     drawPlaceholderImage($('#predictPLBreakdownCanvas')[0], 'images/PLBreakdownPlaceholder.png');
 
-    // Default page to simulate, total page on load
-    $('#simulateBtn').trigger('click');
-    $('#simulateTotalValueToggle').trigger('click');
-    $('#predictTotalValueToggle').trigger('click');
-
     // Fetch asset prices
     _prices = await getCurrentPrices(_assets);
 
@@ -267,5 +282,36 @@ $(async () => {
         priceTargetAsset.val(_formatPrice(_prices[poolPredict.val()]));
     });
 
-    hideSpinner();
+    //========================================
+    // Read query strings
+    //========================================
+
+    var args = parseQueryString();
+
+    if ( args.page == 'simulate' ) {
+        $('#amountSimulate').val(args.amount);
+        $('#dateSimulate').val(args.date);
+        $('#poolSimulate').val(args.pool)
+        $('#simulateBtn').trigger('click');
+        $('#simulateSubmitBtn').trigger('click');
+    } else if ( args.page == 'predict' ) {
+        $('#amountPredict').val(args.amount);
+        $('#dateToPredict').val(args.date);
+        $('#poolPredict').val(args.pool);
+        $('#timespanForAPY').val(args.timespan);
+        $('#priceTargetRune').val(args.priceTargetRune);
+        $('#priceTargetAsset').val(args.priceTargetAsset);
+        $('#predictBtn').trigger('click');
+        $('#predictSubmitBtn').trigger('click');
+    } else if ( args.page == 'leaderboard' ) {
+        $('#leaderboardDate').val(args.since);
+        $('#leaderboardBtn').trigger('click');
+        $('#leaderboardSubmitBtn').trigger('click');
+    } else {
+        // Default page behavior
+        $('#simulateBtn').trigger('click');
+        $('#simulateTotalValueToggle').trigger('click');
+        $('#predictTotalValueToggle').trigger('click');
+        hideSpinner();
+    }
 });

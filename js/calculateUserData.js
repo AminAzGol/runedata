@@ -1,4 +1,6 @@
 const getCurrentPrices = async (assets) => {
+    console.log('getCurrentPrices:', assets);
+
     var query = 'asset=BNB.BUSD-BD1';
     for (asset of assets) {
         if (typeof asset == 'object') {
@@ -15,10 +17,14 @@ const getCurrentPrices = async (assets) => {
     for (i = 1; i < priceData.length; i++) {
         prices[priceData[i].asset] = parseFloat(priceData[i].priceRune) * runePriceUsd
     }
+
+    console.log('getCurrentPrices: done!')
     return prices;
 };
 
 const _getAssetDataWithPoolUnits = async (pool, from, to, interval = 'hour') => {
+    console.log('getAssetDataWithPoolUnits:', { pool, from, to, interval });
+
     var assetData = await $.get(`https://chaosnet-midgard.bepswap.com/v1/history/pools?pool=${pool}&interval=${interval}&from=${from}&to=${to}`);
     var assetDataCurrent = await $.get(`https://chaosnet-midgard.bepswap.com/v1/pools/detail?asset=${pool}`);
 
@@ -27,10 +33,13 @@ const _getAssetDataWithPoolUnits = async (pool, from, to, interval = 'hour') => 
         assetData[i - 1].poolUnits = assetData[i].poolUnits - assetData[i].unitsChanges;
     }
 
+    console.log('getAssetDataWithPoolUnits: done!');
     return assetData
 };
 
 const getPastSimulation = async (amountInvested, dateInvested, pool, assetData = null, busdData = null) => {
+    console.log('getPastSimulation:', { amountInvested, dateInvested, pool });
+
     if (!busdData || !assetData) {
         var from = Math.floor((new Date(dateInvested)).getTime() / 1000);
         var to = Math.floor(Date.now() / 1000);
@@ -89,10 +98,14 @@ const getPastSimulation = async (amountInvested, dateInvested, pool, assetData =
             feeAccrued, impermLoss, totalGains
         };
     }
+
+    console.log('getPastSimulation: done!');
     return userData;
 };
 
 const calculatePLBreakdown = (userData) => {
+    console.log('calculatePLBreakdown...');
+
     var start = userData[0];
     var end = userData[userData.length - 1];
 
@@ -118,6 +131,7 @@ const calculatePLBreakdown = (userData) => {
     // Total
     total = runeMovement + assetMovement + fees + impermLoss
 
+    console.log('calculatePLBreakdown: done!');
     return {
         runeMovement: {
             value: runeMovement,
@@ -143,14 +157,16 @@ const calculatePLBreakdown = (userData) => {
 };
 
 const _calculateFeeAPY = async (pool, timespan) => {
+    console.log('calculateFeeAPY:', { pool, timespan });
+
     switch (timespan) {
-        case '3 days':
+        case '3days':
             hours = 3 * 24;
-        case '7 days':
+        case '7days':
             hours = 7 * 24;
-        case '14 days':
+        case '14days':
             hours = 14 * 24;
-        case '30 days':
+        case '30days':
             hours = 30 * 24;
     }
 
@@ -164,6 +180,8 @@ const _calculateFeeAPY = async (pool, timespan) => {
     };
     var roi = 0.5 * (kValue.end / kValue.start - 1);
     var apy = (1 + roi) ** (365 * 24 / hours) - 1;
+
+    console.log('calculateFeeAPY: done!');
     return apy;
 };
 
@@ -171,6 +189,11 @@ const calculatePrediction = async (amountInvested, dateToPredict,
                                    pool, timespanForAPY,
                                    priceTargetRune, priceTargetAsset,
                                    prices) => {
+    console.log('calculatePrediction', {
+        amountInvested, dateToPredict, pool,
+        timespanForAPY, priceTargetRune, priceTargetAsset
+    });
+
     // Prices of RUNE and asset
     if (!prices) {
         prices = await getCurrentPrices([pool]);
@@ -231,10 +254,13 @@ const calculatePrediction = async (amountInvested, dateToPredict,
     };
     var predictionBreakdown = calculatePLBreakdown([start, end]);
 
+    console.log('calculatePrediction: done!');
     return { prediction, predictionBreakdown };
 };
 
 const getAllAssetPerformances = async (since) => {
+    console.log('getAllAssetPerformances:', { since });
+
     var from = Math.floor((new Date(since)).getTime() / 1000);
     var to = Math.floor(Date.now() / 1000);
 
@@ -263,6 +289,7 @@ const getAllAssetPerformances = async (since) => {
         });
     }
 
+    console.log('getAllAssetPerformances: done!');
     return performances;
 };
 
