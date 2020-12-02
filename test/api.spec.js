@@ -18,4 +18,23 @@ describe("API", () => {
         done();
       });
   });
+
+  it("can simulate past data", (done) => {
+      var amountInvested = 10000
+      var dateInvested = "2020-11-10"
+      var pool = "BNB.BULL-BE4"
+       
+    chai.request(app)
+      .post('/past_simulation')
+      .send({
+          amountInvested,
+          dateInvested,
+          pool
+      })
+      .end((err, res) => {
+        console.log(res.body.err)
+        res.should.have.status(200);
+        done();
+      });
+  });
 });

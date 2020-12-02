@@ -157,7 +157,6 @@ $(async () => {
     $('#simulateSubmitBtn').click((event) => {
         event.preventDefault();
         showSpinner();
-
         getPastSimulation(
             parseFloat($('#amountSimulate').val()),
             $('#dateSimulate').val(),
