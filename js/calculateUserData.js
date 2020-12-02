@@ -305,4 +305,4 @@ const getBestsAndWorsts = (performances) => {
 };
 
 
-module.exports = {getPastSimulation}
+module.exports = {getPastSimulation, calculatePLBreakdown}

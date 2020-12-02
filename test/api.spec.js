@@ -21,7 +21,7 @@ describe("API", () => {
 
   it("can simulate past data", (done) => {
       var amountInvested = 10000
-      var dateInvested = "2020-11-10"
+      var dateInvested = "2020-12-01"
       var pool = "BNB.BULL-BE4"
        
     chai.request(app)
@@ -32,8 +32,12 @@ describe("API", () => {
           pool
       })
       .end((err, res) => {
-        console.log(res.body.err)
         res.should.have.status(200);
+        res.body.simResult.should.be.an('array')
+        res.body.simResult.forEach(function(member){
+            member.should.have.deep.property('runePrice')
+        })
+        res.body.LPBreakdown.should.have.deep.property('assetMovement')
         done();
       });
   });

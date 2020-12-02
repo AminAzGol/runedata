@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const _assets = require('./js/assets')
 const Joi = require('joi');
-const { getPastSimulation } = require('./js/calculateUserData')
+const { getPastSimulation, calculatePLBreakdown } = require('./js/calculateUserData')
 const port = 3001
 
 /* Parse request JSON body */
@@ -34,7 +34,8 @@ app.post('/past_simulation', async (req, res, next) => {
             return res.status(400).json({ err: `"dateInvested" value should be before today` })
 
         var simResult = await getPastSimulation(value.amountInvested, value.dateInvested, value.pool)
-        res.json(simResult)
+        var LPBreakdown = await calculatePLBreakdown(simResult)
+        res.json({simResult, LPBreakdown})
     }
     catch (err) {
         next(err)
