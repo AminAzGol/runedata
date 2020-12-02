@@ -5,3 +5,5 @@ junk/
 .DS_Store
 
 app.log
+
+node_modules

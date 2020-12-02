@@ -146,3 +146,6 @@ _assets.sort((a, b) => {
         return 0;
     }
 });
+
+
+module.exports = _assets
